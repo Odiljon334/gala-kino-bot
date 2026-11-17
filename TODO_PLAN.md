@@ -96,4 +96,4 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
     - 🎬 Sifat tanlash (1080p, 720p, 480p) va Treyler tugmasi.
     - 📢 Mini App ichida Adminlar uchun Majburiy Obuna kanallarini boshqarish paneli.
 - [x] 38. Barcha o'zgarishlarni integratsion testdan o'tkazish (Verification Gate).
-- [ ] 39. Kodlarni GitHub'ga push qilish va bepul doimiy (permanent) serverga ulash qo'llanmasini taqdim etish.
+- [x] 39. Kodlarni GitHub'ga push qilish va bepul doimiy (permanent) serverga ulash qo'llanmasini taqdim etish.
