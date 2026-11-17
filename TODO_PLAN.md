@@ -86,3 +86,14 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
 - [x] 32. Mini App: Kinoni do'stlarga ulashish ("📤 Ulashish") va kino kodini 1-bosishda nusxalash imkoniyati.
 - [x] 33. Avtomatlashtirilgan testlar to'plamini yangilash va verification gate (barcha testlarni 100% muvaffaqiyatli o'tkazish).
 - [x] 34. Git repository'ni barcha yangilanishlar bilan GitHub'ga (`git@github.com:Odiljon334/gala-kino-bot.git`) push qilish.
+
+## 7-Bosqich: Mini App Barqarorligi (Auto-Healing Tunnel) va Elita UI/UX Kengaytmalari
+- [x] 35. Mini App URL dvigatelini to'liq dinamik qilish (`get_web_app_url()` SQLite + .env real-time integratsiya, statik keshlanishni bartaraf etish).
+- [x] 36. Tunnel Auto-Heal & Watchdog dvigateli: tunnel uzilib qolganda avtomatik qayta ulanish, Telegram menyusini yangilash va Error 1033 ni yo'qotish.
+- [x] 37. Mini App UI Elita Yangilanishlari:
+    - Hashamatli Dark Toast xabarnomalar (standart alert o'rniga zamonaviy animatsiyali bildirishnomalar).
+    - 🎲 "Omadli Kino" (Random movie roulette) tugmasi va tezkor tavsiya.
+    - 🎬 Sifat tanlash (1080p, 720p, 480p) va Treyler tugmasi.
+    - 📢 Mini App ichida Adminlar uchun Majburiy Obuna kanallarini boshqarish paneli.
+- [x] 38. Barcha o'zgarishlarni integratsion testdan o'tkazish (Verification Gate).
+- [ ] 39. Kodlarni GitHub'ga push qilish va bepul doimiy (permanent) serverga ulash qo'llanmasini taqdim etish.

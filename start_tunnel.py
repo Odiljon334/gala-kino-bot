@@ -111,6 +111,13 @@ def main():
         return
 
     update_env_url(url)
+    try:
+        from database import set_setting
+        asyncio.run(set_setting("web_app_url", url))
+        print("💾 SQLite bazasiga ham yangi web_app_url saqlandi.")
+    except Exception as e:
+        print(f"⚠️ Baza yangilashda xatolik: {e}")
+
     asyncio.run(register_bot_menu_button(url))
 
     print("==========================================================")

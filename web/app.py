@@ -346,3 +346,15 @@ async def api_admin_add_channel(request: Request):
     return {"status": "ok"}
 
 
+@app.post("/api/admin/channels/toggle_json")
+async def api_admin_toggle_channel(request: Request):
+    data = await request.json()
+    admin_id = data.get("admin_id", 0)
+    channel_id = data.get("channel_id", 0)
+    if admin_id not in settings.ADMIN_IDS:
+        raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
+    from database import toggle_channel_status
+    new_status = await toggle_channel_status(channel_id)
+    return {"status": "ok", "new_status": new_status}
+
+

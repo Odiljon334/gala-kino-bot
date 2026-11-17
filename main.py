@@ -19,6 +19,7 @@ from handlers.referral import referral_router
 from handlers.requests import requests_router
 from handlers.payment import payment_router
 from services.backup import auto_backup_scheduler
+from services.tunnel_watchdog import start_tunnel_watchdog
 from web.app import app as web_app
 
 # Configure Logging
@@ -47,9 +48,10 @@ async def run_bot(bot: Bot, dp: Dispatcher):
         logger.warning(f"Could not drop webhook: {e}")
 
     # Configure Telegram Menu Button for Mini App
-    if settings.WEB_APP_URL and settings.WEB_APP_URL.startswith("https://"):
+    from database import get_web_app_url
+    app_url = await get_web_app_url()
+    if app_url.startswith("https://"):
         from aiogram.types import MenuButtonWebApp, WebAppInfo
-        app_url = settings.WEB_APP_URL if settings.WEB_APP_URL.endswith("/app") else f"{settings.WEB_APP_URL}/app"
         try:
             await bot.set_chat_menu_button(
                 menu_button=MenuButtonWebApp(
@@ -100,11 +102,12 @@ async def main():
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # 4. Run Bot, Web Dashboard, and Auto-Backup Scheduler concurrently
+    # 4. Run Bot, Web Dashboard, Auto-Backup Scheduler, and Tunnel Watchdog concurrently
     await asyncio.gather(
         run_bot(bot, dp),
         run_web(),
-        auto_backup_scheduler(bot)
+        auto_backup_scheduler(bot),
+        start_tunnel_watchdog(bot)
     )
 
 

@@ -528,6 +528,138 @@
       white-space: nowrap;
       margin-left: 8px;
     }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: calc(100% - 32px);
+      max-width: 380px;
+      pointer-events: none;
+    }
+
+    .toast-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(22, 27, 36, 0.96);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast-item.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .toast-success { border-color: rgba(74, 222, 128, 0.4); }
+    .toast-success i { color: #4ade80; }
+    .toast-error { border-color: rgba(239, 68, 68, 0.4); }
+    .toast-error i { color: #ef4444; }
+    .toast-info { border-color: rgba(56, 189, 248, 0.4); }
+    .toast-info i { color: #38bdf8; }
+
+    /* Random Button & Quality Chips */
+    .btn-roulette {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, rgba(245, 197, 24, 0.15), rgba(229, 9, 20, 0.15));
+      border: 1px solid rgba(245, 197, 24, 0.4);
+      color: var(--accent);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-roulette:active { transform: scale(0.96); }
+
+    .quality-selector-wrap {
+      margin: 12px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .quality-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .quality-chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quality-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Admin Channels List */
+    .admin-channel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .channel-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .channel-link {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .btn-toggle-status {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-toggle-status.active {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+    }
+    .btn-toggle-status.inactive {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -561,11 +693,16 @@
 
   <!-- ==================== USER VIEW (CATALOG) ==================== -->
   <main id="userView">
-    <!-- Search Bar -->
+    <!-- Search Bar & Roulette -->
     <div class="search-box">
-      <div class="search-input-wrap">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" class="search-input" placeholder="Kino nomi yoki kodi (101, 102...)" oninput="handleSearch()">
+      <div style="display: flex; gap: 8px;">
+        <div class="search-input-wrap" style="flex: 1;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Kino nomi yoki kodi (101, 102...)" oninput="handleSearch()">
+        </div>
+        <button class="btn-roulette" onclick="pickRandomMovie()" title="Tasodifiy kino">
+          <i class="fa-solid fa-dice"></i> Omadli
+        </button>
       </div>
     </div>
 
@@ -668,6 +805,45 @@
         <i class="fa-solid fa-cloud-arrow-up"></i> Kinoni Bazaga Saqlash
       </button>
     </div>
+
+    <!-- Admin Channels Management -->
+    <div class="admin-quick-add" style="margin-top: 16px;">
+      <h3 style="font-size: 14px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Majburiy Obuna Kanallari</span>
+        <button class="btn-copy-chip" onclick="loadAdminChannels()" style="padding: 3px 8px; font-size: 10px;">
+          <i class="fa-solid fa-rotate"></i> Yangilash
+        </button>
+      </h3>
+      
+      <div id="adminChannelsList">
+        <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Kanallar yuklanmoqda...</p>
+      </div>
+
+      <div style="margin-top: 14px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">➕ Yangi Kanal Qo'shish:</div>
+        <div class="admin-input-group">
+          <label>Kanal Nomi:</label>
+          <input type="text" id="addChanTitle" placeholder="Gala Kino Rasmiy">
+        </div>
+        <div class="admin-input-group">
+          <label>Taklif Havolasi (Invite Link):</label>
+          <input type="text" id="addChanLink" placeholder="https://t.me/kanal_nomi">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div class="admin-input-group" style="flex: 1;">
+            <label>Telegram Channel ID (ixtiyoriy):</label>
+            <input type="text" id="addChanId" placeholder="-1001234567890">
+          </div>
+          <div class="admin-input-group" style="flex: 1;">
+            <label>Taymer (soniya, 0=yo'q):</label>
+            <input type="number" id="addChanTimer" value="0">
+          </div>
+        </div>
+        <button class="btn-deliver" onclick="submitQuickChannel()" style="margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.08); box-shadow: none; border: 1px solid var(--border-color);">
+          <i class="fa-solid fa-plus"></i> Kanalni Saqlash
+        </button>
+      </div>
+    </div>
   </main>
 
   <!-- ==================== MOVIE DETAIL MODAL ==================== -->
@@ -687,7 +863,17 @@
         <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;" id="modalDuration">2 soat</span>
       </div>
 
-      <p id="modalDesc" style="font-size: 13px; color: #d1d5db; line-height: 1.5; margin-bottom: 16px;">Tavsif...</p>
+      <p id="modalDesc" style="font-size: 13px; color: #d1d5db; line-height: 1.5; margin-bottom: 12px;">Tavsif...</p>
+
+      <!-- Quality Selector -->
+      <div class="quality-selector-wrap">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Sifat:</span>
+        <div class="quality-chips">
+          <button class="quality-chip active" onclick="selectQuality('720p', this)">720p HD</button>
+          <button class="quality-chip" onclick="selectQuality('1080p', this)">1080p FHD</button>
+          <button class="quality-chip" onclick="selectQuality('480p', this)">480p SD</button>
+        </div>
+      </div>
 
       <!-- Action Buttons: Favorite, Copy Code, Share -->
       <div class="modal-actions-row">
@@ -950,6 +1136,49 @@
       }
     }
 
+    // Toast Notification System
+    function showToast(message, type = 'success') {
+      let container = document.getElementById("toastContainer");
+      if (!container) {
+        container = document.createElement("div");
+        container.id = "toastContainer";
+        container.className = "toast-container";
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement("div");
+      toast.className = `toast-item toast-${type}`;
+      const icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info');
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      
+      setTimeout(() => { toast.classList.add("show"); }, 10);
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 260);
+      }, 2800);
+    }
+
+    // Random Movie Roulette
+    function pickRandomMovie() {
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      if (!allMovies || allMovies.length === 0) {
+        showToast("Hozircha bazada kinolar mavjud emas!", "info");
+        return;
+      }
+      const randomMovie = allMovies[Math.floor(Math.random() * allMovies.length)];
+      showToast(`🎲 «${randomMovie.title}» kinosi tanlandi!`, "info");
+      openMovieDetail(randomMovie);
+    }
+
+    // Quality Selection
+    let selectedQuality = "720p";
+    function selectQuality(q, btn) {
+      selectedQuality = q;
+      document.querySelectorAll(".quality-chip").forEach(c => c.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    }
+
     // Copy Movie Code
     function copyCurrentMovieCode() {
       if (!currentMovie) return;
@@ -961,8 +1190,9 @@
           textSpan.textContent = "Nusxalandi!";
           setTimeout(() => { textSpan.textContent = old; }, 1800);
         }
+        showToast(`Kino kodi: ${currentMovie.code} nusxalandi!`, "success");
       }).catch(() => {
-        alert("Kino kodi: " + currentMovie.code);
+        showToast("Kino kodi: " + currentMovie.code, "info");
       });
     }
 
@@ -1038,8 +1268,9 @@
           btn.innerHTML = `<i class="fa-solid fa-check"></i> Nusxalandi!`;
           setTimeout(() => { btn.innerHTML = old; }, 1800);
         }
+        showToast("To'lov kartasi nusxalandi!", "success");
       }).catch(() => {
-        alert("Karta raqami: " + currentVipCard);
+        showToast("Karta raqami: " + currentVipCard, "info");
       });
     }
 
@@ -1068,7 +1299,7 @@
           const res = await fetch("/api/deliver", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_id: uid, code: code })
+            body: JSON.stringify({ user_id: uid, code: code, quality: selectedQuality })
           });
           const data = await res.json();
           if (data.status === "ok") {
@@ -1083,8 +1314,8 @@
               closeModal();
               return;
             } else {
-              alert(`«${currentMovie.title}» kinosi botingizga yuborildi!`);
-              if (tg && tg.close) tg.close();
+              showToast(`«${currentMovie.title}» chatga yuborildi!`, "success");
+              if (tg && tg.close) setTimeout(() => tg.close(), 1000);
               closeModal();
               return;
             }
@@ -1117,6 +1348,7 @@
         adminView.style.display = "block";
         btnUser.classList.remove("active");
         btnAdmin.classList.add("active");
+        loadAdminChannels();
       } else {
         userView.style.display = "block";
         adminView.style.display = "none";
@@ -1140,6 +1372,98 @@
       }
     }
 
+    // Admin Channels Management
+    async function loadAdminChannels() {
+      const container = document.getElementById("adminChannelsList");
+      if (!container) return;
+      const uid = currentUser?.id || tg?.initDataUnsafe?.user?.id || 0;
+      try {
+        const res = await fetch(`/api/admin/channels_json?user_id=${uid}`);
+        const data = await res.json();
+        const channels = data.channels || [];
+        if (channels.length === 0) {
+          container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 8px;">Faol kanallar yo'q.</p>`;
+          return;
+        }
+        container.innerHTML = "";
+        channels.forEach(ch => {
+          const div = document.createElement("div");
+          div.className = "admin-channel-item";
+          const isActive = ch.is_active == 1;
+          div.innerHTML = `
+            <div>
+              <div class="channel-title">${ch.title}</div>
+              <div class="channel-link">${ch.invite_link}</div>
+            </div>
+            <button class="btn-toggle-status ${isActive ? 'active' : 'inactive'}" onclick="toggleChannelStatus(${ch.id})">
+              ${isActive ? '🟢 Faol' : '🔴 O\'chirilgan'}
+            </button>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        container.innerHTML = `<p style="font-size: 12px; color: #ef4444; text-align: center;">Kanallarni yuklashda xatolik.</p>`;
+      }
+    }
+
+    async function toggleChannelStatus(channelId) {
+      const uid = currentUser?.id || tg?.initDataUnsafe?.user?.id || 0;
+      try {
+        const res = await fetch("/api/admin/channels/toggle_json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_id: uid, channel_id: channelId })
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          showToast("Kanal holati yangilandi!", "success");
+          loadAdminChannels();
+          loadAdminStats(uid);
+        }
+      } catch (e) {
+        showToast("Xatolik yuz berdi!", "error");
+      }
+    }
+
+    async function submitQuickChannel() {
+      const title = document.getElementById("addChanTitle").value.trim();
+      const link = document.getElementById("addChanLink").value.trim();
+      const chanId = document.getElementById("addChanId").value.trim();
+      const timer = document.getElementById("addChanTimer").value.trim();
+      const uid = currentUser?.id || tg?.initDataUnsafe?.user?.id || 0;
+
+      if (!title || !link) {
+        showToast("Kanal nomi va havolasi kiritilishi shart!", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/admin/channels/add_json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            admin_id: uid,
+            title: title,
+            invite_link: link,
+            channel_id: chanId || null,
+            timer_seconds: parseInt(timer) || 0
+          })
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          showToast(`📢 "${title}" kanali qo'shildi!`, "success");
+          document.getElementById("addChanTitle").value = "";
+          document.getElementById("addChanLink").value = "";
+          document.getElementById("addChanId").value = "";
+          document.getElementById("addChanTimer").value = "0";
+          loadAdminChannels();
+          loadAdminStats(uid);
+        }
+      } catch (e) {
+        showToast("Server bilan ulanishda xatolik!", "error");
+      }
+    }
+
     // Quick Admin Add Movie
     async function submitQuickMovie() {
       const code = document.getElementById("addMovieCode").value.trim();
@@ -1150,7 +1474,7 @@
       const desc = document.getElementById("addMovieDesc").value.trim();
 
       if (!code || !title || !fileId) {
-        alert("Kodi, Nomi va File ID kiritilishi shart!");
+        showToast("Kodi, Nomi va File ID kiritilishi shart!", "error");
         return;
       }
 
@@ -1170,7 +1494,7 @@
         });
         const data = await res.json();
         if (data.status === "ok") {
-          alert(`🎉 "${title}" kinosi muvaffaqiyatli saqlandi!`);
+          showToast(`🎉 "${title}" kinosi saqlandi!`, "success");
           document.getElementById("addMovieCode").value = "";
           document.getElementById("addMovieTitle").value = "";
           document.getElementById("addMovieFileId").value = "";
@@ -1178,10 +1502,10 @@
           loadMovies();
           loadAdminStats(currentUser?.id || 0);
         } else {
-          alert("Xatolik yuz berdi: " + (data.detail || "Saqlanmadi"));
+          showToast("Xatolik: " + (data.detail || "Saqlanmadi"), "error");
         }
       } catch (e) {
-        alert("Server bilan ulanishda xatolik yuz berdi.");
+        showToast("Server bilan ulanishda xatolik yuz berdi.", "error");
       }
     }
 
@@ -1197,7 +1521,7 @@
     async function submitMovieOrder() {
       const title = document.getElementById("orderInput").value.trim();
       if (!title) {
-        alert("Iltimos, kino nomini yozing!");
+        showToast("Iltimos, kino nomini yozing!", "error");
         return;
       }
       try {
@@ -1210,11 +1534,11 @@
             title: title
           })
         });
-        alert("Buyurtmangiz qabul qilindi! Adminlarimiz tez orada kinoni joylashadi.");
+        showToast("Buyurtmangiz qabul qilindi!", "success");
         document.getElementById("orderInput").value = "";
         closeOrderModal();
       } catch (err) {
-        alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
+        showToast("Xatolik yuz berdi. Qayta urinib ko'ring.", "error");
       }
     }
 

@@ -50,12 +50,14 @@ class EnterPromoFSM(StatesGroup):
 
 # ===================== KEYBOARD HELPERS =====================
 
-def get_user_main_menu() -> ReplyKeyboardMarkup:
-    """Main persistent navigation keyboard with Mini App button."""
+async def get_user_main_menu() -> ReplyKeyboardMarkup:
+    """Main persistent navigation keyboard with real-time Mini App button."""
     from aiogram.types import WebAppInfo
+    from database import get_web_app_url
+    
+    app_url = await get_web_app_url()
     kb_rows = []
-    if settings.WEB_APP_URL:
-        app_url = settings.WEB_APP_URL if settings.WEB_APP_URL.endswith("/app") else f"{settings.WEB_APP_URL}/app"
+    if app_url and app_url.startswith("https://"):
         kb_rows.append([KeyboardButton(text="📱 Gala Kino (Mini App)", web_app=WebAppInfo(url=app_url))])
         
     kb_rows.extend([
@@ -166,14 +168,15 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot):
 
     # 5. Send Welcome Start Message
     welcome_text = await format_start_message(message.from_user.first_name, user_id)
-    await message.answer(welcome_text, reply_markup=get_user_main_menu())
+    await message.answer(welcome_text, reply_markup=await get_user_main_menu())
 
 
 @user_router.message(Command("app"))
 async def cmd_app(message: Message):
     """Open Gala Kino Telegram Mini App."""
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
-    app_url = settings.WEB_APP_URL if settings.WEB_APP_URL.endswith("/app") else f"{settings.WEB_APP_URL}/app" if settings.WEB_APP_URL else "http://localhost:8080/app"
+    from database import get_web_app_url
+    app_url = await get_web_app_url()
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📱 Gala Kino Mini Appni Ochish", web_app=WebAppInfo(url=app_url))]
     ])
@@ -228,7 +231,7 @@ async def cb_check_subscription(callback: CallbackQuery, bot: Bot):
         await deliver_movie_by_code(callback.message, bot, target_code, user)
     else:
         welcome_text = await format_start_message(callback.from_user.first_name, user_id)
-        await callback.message.answer(welcome_text, reply_markup=get_user_main_menu())
+        await callback.message.answer(welcome_text, reply_markup=await get_user_main_menu())
 
 
 @user_router.callback_query(F.data.startswith("refresh_sub:"))
@@ -511,7 +514,7 @@ async def fsm_promo_entered(message: Message, state: FSMContext):
     code = message.text.strip()
     await state.clear()
     success, res_text = await redeem_promocode(code, message.from_user.id)
-    await message.answer(res_text, reply_markup=get_user_main_menu())
+    await message.answer(res_text, reply_markup=await get_user_main_menu())
 
 
 # ===================== CATCH-ALL TEXT (CODE LOOKUP) =====================

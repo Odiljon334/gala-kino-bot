@@ -282,6 +282,26 @@ async def get_all_settings() -> Dict[str, str]:
             return {row["key"]: row["value"] for row in rows}
 
 
+async def get_web_app_url() -> str:
+    """Retrieve real-time Telegram Mini App URL from database or .env."""
+    url = await get_setting("web_app_url", "")
+    if not url:
+        from dotenv import dotenv_values
+        from config import BASE_DIR
+        try:
+            env_vals = dotenv_values(BASE_DIR / ".env")
+            url = env_vals.get("WEB_APP_URL", "")
+        except Exception:
+            pass
+    if not url:
+        from config import settings
+        url = settings.WEB_APP_URL
+
+    if url and not url.endswith("/app"):
+        url = f"{url}/app"
+    return url or "http://localhost:8080/app"
+
+
 # ===================== USERS =====================
 
 async def get_or_create_user(telegram_id: int, username: Optional[str], first_name: Optional[str]) -> Dict[str, Any]:
