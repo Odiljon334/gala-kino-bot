@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: gala-kino-bot
+    runtime: docker
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        value: galakinobot
+      - key: ADMIN_IDS
+        value: "8430493961"
+      - key: WEB_HOST
+        value: 0.0.0.0
+      - key: WEB_PORT
+        value: "8080"
+      - key: WEB_ADMIN_USERNAME
+        value: admin
+      - key: WEB_ADMIN_PASSWORD
+        value: kinochi2026
+      - key: WEB_SECRET_KEY
+        generateValue: true
+      - key: DEFAULT_DAILY_LIMIT
+        value: "10"
+      - key: TIMEZONE
+        value: Asia/Tashkent
