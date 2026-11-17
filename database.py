@@ -67,7 +67,8 @@ DEFAULT_SETTINGS = {
         "• 1 yil: 99,000 so'm\n\n"
         "Murojaat uchun: {admin_contact}"
     ),
-    "admin_contact": "@Odiljon_n3"
+    "admin_contact": "@Odiljon_n3",
+    "payment_card_number": "8600 •••• •••• 1234 (Odiljon N.)"
 }
 
 

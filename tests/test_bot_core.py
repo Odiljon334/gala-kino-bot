@@ -66,7 +66,7 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         """Test getting and updating dynamic settings without modifying code."""
         # Check default setting
         bot_name = await get_setting("bot_name")
-        self.assertEqual(bot_name, "Kinochi Bot Pro")
+        self.assertEqual(bot_name, "Gala Kino")
 
         # Update setting dynamically
         await set_setting("bot_name", "Yangi Super Kino Bot")
@@ -197,7 +197,7 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         # GET / (Home)
         res_home = client.get("/")
         self.assertEqual(res_home.status_code, 200)
-        self.assertIn("Kinochi Bot Pro", res_home.text)
+        self.assertIn("Gala Kino", res_home.text)
 
         # GET /channels
         res_ch = client.get("/channels")

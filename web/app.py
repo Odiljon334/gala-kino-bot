@@ -215,6 +215,23 @@ async def api_me(user_id: int = 0):
     }
 
 
+@app.api_route("/api/vip_info", methods=["GET", "HEAD"])
+async def api_vip_info():
+    """Get VIP pricing and payment card credentials."""
+    from database import get_setting
+    card = await get_setting("payment_card_number", "8600 •••• •••• 1234 (Odiljon N.)")
+    contact = await get_setting("admin_contact", "@Odiljon_n3")
+    return {
+        "card_number": card,
+        "admin_contact": contact,
+        "prices": [
+            {"period": "1 oy", "price": "15,000 so'm"},
+            {"period": "3 oy", "price": "35,000 so'm"},
+            {"period": "1 yil", "price": "99,000 so'm"}
+        ]
+    }
+
+
 @app.api_route("/api/movies", methods=["GET", "HEAD"])
 async def api_movies(q: str = "", genre: str = ""):
     """Return filtered or full movies catalog."""

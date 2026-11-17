@@ -137,6 +137,10 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot):
                         pass
             except Exception as e:
                 logger.warning(f"Referral parsing error: {e}")
+        elif param == "buy_vip":
+            from handlers.payment import send_vip_payment_screen
+            await send_vip_payment_screen(message)
+            return
         else:
             target_code = param.replace("movie_", "")
 
@@ -417,6 +421,7 @@ async def btn_vip_status(message: Message):
     text = f"Sizning holatingiz: {status_str}\n\n{vip_text}"
 
     kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 VIP Sotib Olish (Karta orqali)", callback_data="buy_vip")],
         [InlineKeyboardButton(text="🎟 Promokod kiritish", callback_data="enter_promo")],
         [InlineKeyboardButton(text="💬 Adminga yozish", url=f"https://t.me/{admin_contact.replace('@', '')}")]
     ])

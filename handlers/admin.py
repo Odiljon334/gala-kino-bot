@@ -551,11 +551,15 @@ async def cb_admin_settings(callback: CallbackQuery):
     settings_dict = await get_all_settings()
     maintenance_status = "🔴 O'chirilgan" if settings_dict.get("maintenance_mode") == "0" else "🟢 YOQILGAN (Sayt ta'mirda)"
     daily_limit = settings_dict.get("daily_download_limit", "10")
+    card_number = settings_dict.get("payment_card_number", "8600 •••• •••• 1234")
+    admin_contact = settings_dict.get("admin_contact", "@Odiljon_n3")
     
     text = (
         "⚙️ <b>BOTNING DINAMIK PARAMETRLARI:</b>\n\n"
         f"🛠 <b>Texnik ishlar rejimi:</b> {maintenance_status}\n"
         f"📥 <b>Kunlik bepul yuklash limiti:</b> {daily_limit} ta (0 = cheksiz)\n"
+        f"💳 <b>VIP To'lov kartasi:</b> <code>{card_number}</code>\n"
+        f"👨‍💻 <b>Admin aloqa:</b> <code>{admin_contact}</code>\n"
         f"⚡️ <b>Anti-flood himoyasi:</b> {settings_dict.get('anti_flood_rate', '2')} so'rov/sekund\n"
         f"📢 <b>Homiy reklama banneri:</b> {settings_dict.get('ad_banner_text', 'Yo''q')[:35]}...\n\n"
         "O'zgartirmoqchi bo'lgan parametrni tanlang:"
@@ -564,6 +568,8 @@ async def cb_admin_settings(callback: CallbackQuery):
     m_toggle_text = "🟢 Texnik rejimni YOQISH" if settings_dict.get("maintenance_mode") == "0" else "🔴 Texnik rejimni O'CHIRISH"
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=m_toggle_text, callback_data="toggle_maintenance")],
+        [InlineKeyboardButton(text="💳 VIP To'lov kartasini o'zgartirish", callback_data="edit_setting:payment_card_number")],
+        [InlineKeyboardButton(text="👨‍💻 Admin kontaktini o'zgartirish", callback_data="edit_setting:admin_contact")],
         [InlineKeyboardButton(text="📝 Start xabarini o'zgartirish", callback_data="edit_setting:start_message")],
         [InlineKeyboardButton(text="🎨 Kino shablonini o'zgartirish", callback_data="edit_setting:caption_template")],
         [InlineKeyboardButton(text="📥 Kunlik limitni o'zgartirish", callback_data="edit_setting:daily_download_limit")],

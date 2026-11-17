@@ -17,6 +17,8 @@ from handlers.user import user_router
 from handlers.inline import inline_router
 from handlers.referral import referral_router
 from handlers.requests import requests_router
+from handlers.payment import payment_router
+from services.backup import auto_backup_scheduler
 from web.app import app as web_app
 
 # Configure Logging
@@ -35,6 +37,7 @@ async def run_bot(bot: Bot, dp: Dispatcher):
     dp.include_router(inline_router)
     dp.include_router(referral_router)
     dp.include_router(requests_router)
+    dp.include_router(payment_router)
     dp.include_router(user_router)
     
     # Delete webhook if any
@@ -97,10 +100,11 @@ async def main():
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # 4. Run Both Bot and Web Dashboard concurrently
+    # 4. Run Bot, Web Dashboard, and Auto-Backup Scheduler concurrently
     await asyncio.gather(
         run_bot(bot, dp),
-        run_web()
+        run_web(),
+        auto_backup_scheduler(bot)
     )
 
 

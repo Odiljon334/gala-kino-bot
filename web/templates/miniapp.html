@@ -442,6 +442,92 @@
       margin-bottom: 12px;
       color: rgba(255,255,255,0.1);
     }
+
+    /* VIP Pill & Modal Styles */
+    .vip-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.15));
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      color: #ffd700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .vip-pill:active {
+      transform: scale(0.96);
+    }
+
+    .modal-actions-row {
+      display: flex;
+      gap: 8px;
+      margin: 14px 0 16px;
+    }
+
+    .btn-action-small {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action-small:active {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.97);
+    }
+
+    .btn-action-small.favorited {
+      background: rgba(229, 9, 20, 0.2);
+      border-color: var(--primary);
+      color: #ff4d4d;
+    }
+
+    .vip-card-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px dashed rgba(255, 215, 0, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .vip-card-num {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #ffd700;
+      word-break: break-all;
+    }
+
+    .btn-copy-chip {
+      background: rgba(255, 215, 0, 0.2);
+      color: #ffd700;
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -452,9 +538,14 @@
       <i class="fa-solid fa-clapperboard"></i>
       GALA<span>KINO</span>
     </div>
-    <div class="user-pill" id="userBadge">
-      <i class="fa-solid fa-user"></i>
-      <span id="userNameDisplay">Foydalanuvchi</span>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="vip-pill" onclick="openVipModal()">
+        <i class="fa-solid fa-gem"></i> VIP
+      </button>
+      <div class="user-pill" id="userBadge">
+        <i class="fa-solid fa-user"></i>
+        <span id="userNameDisplay">Foydalanuvchi</span>
+      </div>
     </div>
   </header>
 
@@ -481,6 +572,7 @@
     <!-- Genre Filter Chips -->
     <div class="genre-scroll" id="genreContainer">
       <div class="genre-chip active" onclick="filterGenre('Barchasi')">🎬 Barchasi</div>
+      <div class="genre-chip" onclick="filterGenre('Sevimlilar')">❤️ Sevimlilar</div>
       <div class="genre-chip" onclick="filterGenre('Jangari')">💥 Jangari</div>
       <div class="genre-chip" onclick="filterGenre('Komediya')">😂 Komediya</div>
       <div class="genre-chip" onclick="filterGenre('Fantastika')">🚀 Fantastika</div>
@@ -597,9 +689,69 @@
 
       <p id="modalDesc" style="font-size: 13px; color: #d1d5db; line-height: 1.5; margin-bottom: 16px;">Tavsif...</p>
 
+      <!-- Action Buttons: Favorite, Copy Code, Share -->
+      <div class="modal-actions-row">
+        <button class="btn-action-small" id="btnFavMovie" onclick="toggleFavoriteCurrentMovie()">
+          <i class="fa-regular fa-heart" id="favIcon"></i> <span id="favText">Sevimlilar</span>
+        </button>
+        <button class="btn-action-small" id="btnCopyCode" onclick="copyCurrentMovieCode()">
+          <i class="fa-regular fa-copy"></i> <span id="copyCodeText">Koddan nusxa</span>
+        </button>
+        <button class="btn-action-small" id="btnShareMovie" onclick="shareCurrentMovie()">
+          <i class="fa-solid fa-share-nodes"></i> Ulashish
+        </button>
+      </div>
+
       <!-- Instant Delivery Button -->
       <button class="btn-deliver" id="btnDeliverMovie" onclick="deliverCurrentMovie()">
         <i class="fa-solid fa-play"></i> Kinoni Botda Ko'rish / Yuklab Olish
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== VIP MODAL ==================== -->
+  <div class="modal-overlay" id="vipModal" onclick="closeModalOnBg(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-gem" style="color: #ffd700; font-size: 20px;"></i>
+          <h3 style="font-size: 18px; font-weight: 800; color: #ffd700;">Gala Kino VIP</h3>
+        </div>
+        <button class="modal-close" onclick="closeVipModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="font-size: 13px; line-height: 1.6; color: #e2e8f0; margin: 12px 0;">
+        <p>✅ <b>Barcha kinolarni cheksiz yuklab olish</b></p>
+        <p>✅ <b>Reklamasiz va majburiy obunasiz foydalanish</b></p>
+        <p>✅ <b>Eksklyuziv premyeralarni birinchilardan bo'lib ko'rish</b></p>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">💰 VIP TARIFLAR:</div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+          <span>1 Oylik obuna</span>
+          <span style="font-weight: 700; color: #ffd700;">15,000 so'm</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+          <span>3 Oylik obuna</span>
+          <span style="font-weight: 700; color: #ffd700;">35,000 so'm</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0;">
+          <span>1 Yillik obuna (Cheksiz)</span>
+          <span style="font-weight: 700; color: #ffd700;">99,000 so'm</span>
+        </div>
+      </div>
+
+      <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">💳 TO'LOV UCHUN KARTA:</div>
+      <div class="vip-card-box">
+        <span class="vip-card-num" id="vipCardDisplay">8600 •••• •••• 1234 (Odiljon N.)</span>
+        <button class="btn-copy-chip" id="btnCopyCard" onclick="copyCardNumber()">
+          <i class="fa-regular fa-copy"></i> Nusxa
+        </button>
+      </div>
+
+      <button class="btn-deliver" style="background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; font-weight: 800;" onclick="openVipInBot()">
+        <i class="fa-solid fa-receipt"></i> Chekni Botga Yuborish
       </button>
     </div>
   </div>
@@ -722,7 +874,13 @@
       document.querySelectorAll(".genre-chip").forEach(chip => {
         chip.classList.toggle("active", chip.textContent.includes(genre));
       });
-      loadMovies(genre === "Barchasi" ? "" : genre, document.getElementById("searchInput").value);
+      if (genre === "Sevimlilar") {
+        const favs = getFavorites();
+        const filtered = allMovies.filter(m => favs.includes(m.code));
+        renderMovies(filtered);
+      } else {
+        loadMovies(genre === "Barchasi" ? "" : genre, document.getElementById("searchInput").value);
+      }
     }
 
     // Search Handler
@@ -731,8 +889,93 @@
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         const q = document.getElementById("searchInput").value.trim();
-        loadMovies(currentGenre === "Barchasi" ? "" : currentGenre, q);
+        if (currentGenre === "Sevimlilar") {
+          const favs = getFavorites();
+          const filtered = allMovies.filter(m => favs.includes(m.code) && (m.title.toLowerCase().includes(q.toLowerCase()) || m.code.includes(q)));
+          renderMovies(filtered);
+        } else {
+          loadMovies(currentGenre === "Barchasi" ? "" : currentGenre, q);
+        }
       }, 300);
+    }
+
+    // Favorites (Watchlist) Management
+    function getFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem('gala_kino_favorites') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function isFavorite(code) {
+      return getFavorites().includes(code);
+    }
+
+    function toggleFavoriteCurrentMovie() {
+      if (!currentMovie) return;
+      let favs = getFavorites();
+      const code = currentMovie.code;
+      const idx = favs.indexOf(code);
+      if (idx > -1) {
+        favs.splice(idx, 1);
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      } else {
+        favs.push(code);
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      }
+      localStorage.setItem('gala_kino_favorites', JSON.stringify(favs));
+      updateFavButtonState();
+      if (currentGenre === "Sevimlilar") {
+        renderMovies(allMovies.filter(m => favs.includes(m.code)));
+      }
+    }
+
+    function updateFavButtonState() {
+      if (!currentMovie) return;
+      const fav = isFavorite(currentMovie.code);
+      const btn = document.getElementById("btnFavMovie");
+      const icon = document.getElementById("favIcon");
+      const text = document.getElementById("favText");
+      if (btn && icon && text) {
+        if (fav) {
+          btn.classList.add("favorited");
+          icon.className = "fa-solid fa-heart";
+          text.textContent = "Sevimlida";
+        } else {
+          btn.classList.remove("favorited");
+          icon.className = "fa-regular fa-heart";
+          text.textContent = "Sevimlilar";
+        }
+      }
+    }
+
+    // Copy Movie Code
+    function copyCurrentMovieCode() {
+      if (!currentMovie) return;
+      navigator.clipboard.writeText(currentMovie.code).then(() => {
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        const textSpan = document.getElementById("copyCodeText");
+        if (textSpan) {
+          const old = textSpan.textContent;
+          textSpan.textContent = "Nusxalandi!";
+          setTimeout(() => { textSpan.textContent = old; }, 1800);
+        }
+      }).catch(() => {
+        alert("Kino kodi: " + currentMovie.code);
+      });
+    }
+
+    // Share Movie
+    function shareCurrentMovie() {
+      if (!currentMovie) return;
+      const shareText = encodeURIComponent(`🎬 «${currentMovie.title}» kinosini Gala Kino botida tomosha qiling! Kodi: ${currentMovie.code}`);
+      const shareUrl = `https://t.me/share/url?url=https://t.me/${botUsername}?start=${currentMovie.code}&text=${shareText}`;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(shareUrl);
+      } else {
+        window.open(shareUrl, '_blank');
+      }
     }
 
     // Movie Detail Modal
@@ -744,6 +987,7 @@
       document.getElementById("modalRating").textContent = m.rating || 7.5;
       document.getElementById("modalDuration").textContent = m.duration || "1 soat 45 daqiqa";
       document.getElementById("modalDesc").textContent = m.description || "Ajoyib kino, tomosha qiling!";
+      updateFavButtonState();
       document.getElementById("movieModal").style.display = "flex";
     }
 
@@ -755,6 +999,56 @@
       if (e.target.classList.contains("modal-overlay")) {
         closeModal();
         closeOrderModal();
+        closeVipModal();
+      }
+    }
+
+    // VIP Modal Management
+    let currentVipCard = "8600 •••• •••• 1234 (Odiljon N.)";
+    async function loadVipInfo() {
+      try {
+        const res = await fetch("/api/vip_info");
+        const data = await res.json();
+        if (data.card_number) {
+          currentVipCard = data.card_number;
+          const display = document.getElementById("vipCardDisplay");
+          if (display) display.textContent = currentVipCard;
+        }
+      } catch (err) {
+        console.warn("VIP info load error:", err);
+      }
+    }
+
+    function openVipModal() {
+      loadVipInfo();
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      document.getElementById("vipModal").style.display = "flex";
+    }
+
+    function closeVipModal() {
+      document.getElementById("vipModal").style.display = "none";
+    }
+
+    function copyCardNumber() {
+      navigator.clipboard.writeText(currentVipCard).then(() => {
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        const btn = document.getElementById("btnCopyCard");
+        if (btn) {
+          const old = btn.innerHTML;
+          btn.innerHTML = `<i class="fa-solid fa-check"></i> Nusxalandi!`;
+          setTimeout(() => { btn.innerHTML = old; }, 1800);
+        }
+      }).catch(() => {
+        alert("Karta raqami: " + currentVipCard);
+      });
+    }
+
+    function openVipInBot() {
+      closeVipModal();
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/${botUsername}?start=buy_vip`);
+      } else {
+        window.location.href = `https://t.me/${botUsername}?start=buy_vip`;
       }
     }
 

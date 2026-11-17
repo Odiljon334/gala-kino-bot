@@ -72,3 +72,17 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
 - [x] 22. Foydalanuvchilar uchun zamonaviy mobil Web App interfeysi (Netflix/Kinopoisk uslubidagi qora mavzu, jonli qidiruv, janrlar, kinoni 1-bosishda botda ochish/yuklab olish).
 - [x] 23. Bot menyusiga doimiy "🎬 Kinolar (Mini App)" tugmasini (`set_chat_menu_button`) ulash.
 - [x] 24. Sinov va tekshiruv (Verification Gate) — Admin va Oddiy foydalanuvchi ko'rinishlari, tunnel va API javoblarini tekshirish.
+
+## 5-Bosqich: GALA KINO PRO MAX — Professional Darajadagi Kengaytmalar (YAKUNLANGAN)
+- [x] 25. Mini App Pro Max UI: Native Haptic Feedback, Sevimlilar (Favorites/Watchlist ❤️), Treyler ko'rish (🎬), va Premyeralar karuseli.
+- [x] 26. Multi-Quality (480p / 720p / 1080p) va Seriallar (Fasllar / Qismlar) tanlash dvigatelini to'liq ulash.
+- [x] 27. VIP To'lov va Chek qabul qilish tizimi (`handlers/payment.py`): Chek yuborish, adminga tasdiqlash tugmasi bilan borishi va avtomatik VIP yoqilishi.
+- [x] 28. Avtomatik Tizim Zaxirasi (DB Backup) va Kengaytirilgan Xabarnoma (Broadcast Engine).
+- [x] 29. Barcha namunaviy videolarni bazadan tozalash (0 ta qoldirish).
+
+## 6-Bosqich: Elita Professional Imkoniyatlar va GitHub Sinxronizatsiyasi
+- [x] 30. Telegram Admin panelida Karta raqami (`payment_card_number`), Admin kontakt (`admin_contact`) va VIP narxlarini dinamik o'zgartirish tugmalarini qo'shish.
+- [x] 31. Mini App UI: "💎 VIP Obuna" modal oynasi, kartani 1-bosishda nusxalash (`copy to clipboard`), va "❤️ Sevimlilar" (Watchlist) funksiyasini ulash.
+- [x] 32. Mini App: Kinoni do'stlarga ulashish ("📤 Ulashish") va kino kodini 1-bosishda nusxalash imkoniyati.
+- [x] 33. Avtomatlashtirilgan testlar to'plamini yangilash va verification gate (barcha testlarni 100% muvaffaqiyatli o'tkazish).
+- [ ] 34. Git repository'ni barcha yangilanishlar bilan GitHub'ga (`git@github.com:Odiljon334/gala-kino-bot.git`) push qilish.
