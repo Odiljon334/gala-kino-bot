@@ -28,7 +28,7 @@ if not CLOUDFLARED_BIN.exists():
 
 def start_tunnel():
     print("🚀 Cloudflare bepul HTTPS tunneli ishga tushirilmoqda...")
-    cmd = [str(CLOUDFLARED_BIN), "tunnel", "--url", "http://localhost:8080"]
+    cmd = [str(CLOUDFLARED_BIN), "tunnel", "--url", "http://127.0.0.1:8080"]
     proc = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
