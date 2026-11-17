@@ -65,3 +65,10 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
 - [x] 17. 12 ta asosiy janr (Jangari, Komediya, Fantastika, Qo'rqinchli, Drama, Melodrama, Multfilm, Kriminal, Tarixiy, Detektiv, Anime, Sarguzasht) bo'yicha to'liq ma'lumotlar bazasini yozish (`populate_movies.py`).
 - [x] 18. Har bir kino uchun unikal kod (101-112), rasmiy nom, yil, davlat, reyting va tavsiflarni kiritish.
 - [x] 19. Baza va kategoriyalarni amalda tekshirish (Verification Gate) — har bir janrda kinolar mavjudligini tasdiqlash.
+
+## 4-Bosqich: Telegram Mini App va Rolli Boshqaruv (Admin vs Foydalanuvchi) hamda Bepul HTTPS Domen (YAKUNLANGAN)
+- [x] 20. Bepul HTTPS Domen (Cloudflare Tunnel `cloudflared`) va Render / Local Tunnel yechimini joriy qilish.
+- [x] 21. Telegram WebApp JS integratsiyasi (`window.Telegram.WebApp`) va Rolli avto-yo'naltirish (Admin -> Boshqaruv paneli, Foydalanuvchi -> Zamonaviy Kino Katalogi).
+- [x] 22. Foydalanuvchilar uchun zamonaviy mobil Web App interfeysi (Netflix/Kinopoisk uslubidagi qora mavzu, jonli qidiruv, janrlar, kinoni 1-bosishda botda ochish/yuklab olish).
+- [x] 23. Bot menyusiga doimiy "🎬 Kinolar (Mini App)" tugmasini (`set_chat_menu_button`) ulash.
+- [x] 24. Sinov va tekshiruv (Verification Gate) — Admin va Oddiy foydalanuvchi ko'rinishlari, tunnel va API javoblarini tekshirish.

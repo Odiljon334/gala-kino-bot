@@ -162,7 +162,10 @@ async def cb_admin_stats(callback: CallbackQuery):
         [InlineKeyboardButton(text="🔄 Yangilash", callback_data="admin_stats")],
         [InlineKeyboardButton(text="◀️ Orqaga", callback_data="admin_menu")]
     ])
-    await callback.message.edit_text(text, reply_markup=kb)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        pass
 
 
 # ===================== CHANNELS & TIMERS =====================
@@ -246,7 +249,10 @@ async def cb_channel_view(callback: CallbackQuery):
         ],
         [InlineKeyboardButton(text="◀️ Kanallar ro'yxati", callback_data="admin_channels")]
     ])
-    await callback.message.edit_text(text, reply_markup=kb)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        pass
 
 
 @admin_router.callback_query(F.data.startswith("ch_toggle:"))
@@ -375,7 +381,10 @@ async def cb_admin_movies(callback: CallbackQuery):
         [InlineKeyboardButton(text="🔍 Kinoni Tahrirlash / O'chirish", callback_data="find_movie_edit")],
         [InlineKeyboardButton(text="◀️ Orqaga", callback_data="admin_menu")]
     ])
-    await callback.message.edit_text(text, reply_markup=kb)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        pass
 
 
 @admin_router.callback_query(F.data == "add_movie_start")
@@ -561,7 +570,10 @@ async def cb_admin_settings(callback: CallbackQuery):
         [InlineKeyboardButton(text="📢 Homiy reklama bannerini tahrirlash", callback_data="edit_setting:ad_banner_text")],
         [InlineKeyboardButton(text="◀️ Boshqaruv paneli", callback_data="admin_menu")]
     ])
-    await callback.message.edit_text(text, reply_markup=kb)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        pass
 
 
 @admin_router.callback_query(F.data == "toggle_maintenance")
@@ -661,7 +673,10 @@ async def cb_admin_vip(callback: CallbackQuery):
         [InlineKeyboardButton(text="👤 Foydalanuvchiga VIP Berish", callback_data="grant_vip_start")],
         [InlineKeyboardButton(text="◀️ Boshqaruv paneli", callback_data="admin_menu")]
     ])
-    await callback.message.edit_text(text, reply_markup=kb)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        pass
 
 
 @admin_router.callback_query(F.data == "add_promo_start")
@@ -744,7 +759,10 @@ async def cb_admin_web_info(callback: CallbackQuery):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="◀️ Orqaga", callback_data="admin_menu")]
     ])
-    await callback.message.edit_text(text, reply_markup=kb)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        pass
 
 
 @admin_router.message(Command("cancel"))

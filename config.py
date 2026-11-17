@@ -24,6 +24,7 @@ class Settings(BaseModel):
     # Web Dashboard Settings
     WEB_HOST: str = os.getenv("WEB_HOST", "0.0.0.0")
     WEB_PORT: int = int(os.getenv("WEB_PORT", "8080"))
+    WEB_APP_URL: str = os.getenv("WEB_APP_URL", "")
     WEB_ADMIN_USERNAME: str = os.getenv("WEB_ADMIN_USERNAME", "admin")
     WEB_ADMIN_PASSWORD: str = os.getenv("WEB_ADMIN_PASSWORD", "kinochi2026")
     WEB_SECRET_KEY: str = os.getenv("WEB_SECRET_KEY", "super-secret-kino-key-2026")

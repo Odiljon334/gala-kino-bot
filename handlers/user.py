@@ -51,28 +51,32 @@ class EnterPromoFSM(StatesGroup):
 # ===================== KEYBOARD HELPERS =====================
 
 def get_user_main_menu() -> ReplyKeyboardMarkup:
-    """Main persistent navigation keyboard."""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [
-                KeyboardButton(text="🔍 Nomi bo'yicha qidirish"),
-                KeyboardButton(text="🎲 Tasodifiy kino")
-            ],
-            [
-                KeyboardButton(text="🎭 Janrlar katalogi"),
-                KeyboardButton(text="🏆 Top-10 kinolar")
-            ],
-            [
-                KeyboardButton(text="👥 Do'stlarni taklif qilish"),
-                KeyboardButton(text="📥 Kino buyurtma qilish")
-            ],
-            [
-                KeyboardButton(text="💎 VIP Status"),
-                KeyboardButton(text="📞 Aloqa & Yordam")
-            ]
+    """Main persistent navigation keyboard with Mini App button."""
+    from aiogram.types import WebAppInfo
+    kb_rows = []
+    if settings.WEB_APP_URL:
+        app_url = settings.WEB_APP_URL if settings.WEB_APP_URL.endswith("/app") else f"{settings.WEB_APP_URL}/app"
+        kb_rows.append([KeyboardButton(text="📱 Gala Kino (Mini App)", web_app=WebAppInfo(url=app_url))])
+        
+    kb_rows.extend([
+        [
+            KeyboardButton(text="🔍 Nomi bo'yicha qidirish"),
+            KeyboardButton(text="🎲 Tasodifiy kino")
         ],
-        resize_keyboard=True
-    )
+        [
+            KeyboardButton(text="🎭 Janrlar katalogi"),
+            KeyboardButton(text="🏆 Top-10 kinolar")
+        ],
+        [
+            KeyboardButton(text="👥 Do'stlarni taklif qilish"),
+            KeyboardButton(text="📥 Kino buyurtma qilish")
+        ],
+        [
+            KeyboardButton(text="💎 VIP Status"),
+            KeyboardButton(text="📞 Aloqa & Yordam")
+        ]
+    ])
+    return ReplyKeyboardMarkup(keyboard=kb_rows, resize_keyboard=True)
 
 
 def get_genres_keyboard() -> InlineKeyboardMarkup:
@@ -159,6 +163,29 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot):
     # 5. Send Welcome Start Message
     welcome_text = await format_start_message(message.from_user.first_name, user_id)
     await message.answer(welcome_text, reply_markup=get_user_main_menu())
+
+
+@user_router.message(Command("app"))
+async def cmd_app(message: Message):
+    """Open Gala Kino Telegram Mini App."""
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+    app_url = settings.WEB_APP_URL if settings.WEB_APP_URL.endswith("/app") else f"{settings.WEB_APP_URL}/app" if settings.WEB_APP_URL else "http://localhost:8080/app"
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📱 Gala Kino Mini Appni Ochish", web_app=WebAppInfo(url=app_url))]
+    ])
+    await message.answer(
+        "📱 <b>Gala Kino Telegram Mini App</b>\n\n"
+        "Kinolar katalogi, janrlar va qulay qidiruv tizimidan foydalanish uchun quyidagi tugmani bosing:",
+        reply_markup=kb
+    )
+
+
+@user_router.message(F.web_app_data)
+async def handle_miniapp_data(message: Message, bot: Bot):
+    """Handle movie selection directly from Telegram Mini App."""
+    code = message.web_app_data.data.strip().upper()
+    user = await get_or_create_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
+    await deliver_movie_by_code(message, bot, code, user)
 
 
 # ===================== SUBSCRIPTION CALLBACKS =====================

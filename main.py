@@ -42,6 +42,21 @@ async def run_bot(bot: Bot, dp: Dispatcher):
         await bot.delete_webhook(drop_pending_updates=True)
     except Exception as e:
         logger.warning(f"Could not drop webhook: {e}")
+
+    # Configure Telegram Menu Button for Mini App
+    if settings.WEB_APP_URL and settings.WEB_APP_URL.startswith("https://"):
+        from aiogram.types import MenuButtonWebApp, WebAppInfo
+        app_url = settings.WEB_APP_URL if settings.WEB_APP_URL.endswith("/app") else f"{settings.WEB_APP_URL}/app"
+        try:
+            await bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="🎬 Kinolar (Mini App)",
+                    web_app=WebAppInfo(url=app_url)
+                )
+            )
+            logger.info(f"Telegram Menu Button configured with: {app_url}")
+        except Exception as e:
+            logger.warning(f"Could not set menu button: {e}")
         
     await dp.start_polling(bot)
 

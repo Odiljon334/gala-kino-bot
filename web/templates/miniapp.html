@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gala Kino — Telegram Mini App</title>
+  <!-- Telegram WebApp JS SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-color: #0b0c10;
+      --card-bg: #1f2833;
+      --card-hover: #293442;
+      --primary: #e50914;
+      --accent: #f5c518;
+      --text-main: #ffffff;
+      --text-muted: #8e95a5;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 14px;
+      line-height: 1.4;
+      overflow-x: hidden;
+      padding-bottom: 75px;
+    }
+
+    /* Header Bar */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 12, 16, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--primary);
+    }
+
+    .brand span {
+      color: var(--text-main);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+    }
+
+    .admin-badge {
+      background: linear-gradient(135deg, #f5c518, #e50914);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    /* Admin Tab Switcher */
+    .admin-switch-bar {
+      display: none;
+      background: #141720;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
+    .switch-btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .switch-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Search & Filters */
+    .search-box {
+      padding: 12px 16px;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input-wrap i {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    /* Genre Filter Chips */
+    .genre-scroll {
+      display: flex;
+      gap: 8px;
+      padding: 4px 16px 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .genre-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .genre-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .genre-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Movies Grid */
+    .catalog-container {
+      padding: 0 16px;
+    }
+
+    .catalog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .catalog-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .movies-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .movie-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .movie-card:active {
+      transform: scale(0.98);
+      background: var(--card-hover);
+    }
+
+    .poster-wrap {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #1c2230, #0f131a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .poster-wrap i {
+      font-size: 38px;
+      color: rgba(255, 255, 255, 0.15);
+    }
+
+    .rating-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      padding: 3px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .code-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: var(--primary);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .card-info {
+      padding: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+
+    /* Modal / Movie Details */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .modal-content {
+      background: #151922;
+      width: 100%;
+      max-height: 85vh;
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border-color);
+      overflow-y: auto;
+      padding: 20px 16px 30px;
+      animation: slideUp 0.25s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .modal-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn-deliver {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #e50914, #b20710);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 16px;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+    }
+
+    /* Admin Panel View */
+    .admin-view-container {
+      display: none;
+      padding: 16px;
+    }
+
+    .stats-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .action-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(11, 12, 16, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 100;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: none;
+      flex: 1;
+    }
+
+    .nav-tab i {
+      font-size: 18px;
+    }
+
+    .nav-tab.active {
+      color: var(--primary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i {
+      font-size: 40px;
+      margin-bottom: 12px;
+      color: rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-nav">
+    <div class="brand">
+      <i class="fa-solid fa-clapperboard"></i>
+      GALA<span>KINO</span>
+    </div>
+    <div class="user-pill" id="userBadge">
+      <i class="fa-solid fa-user"></i>
+      <span id="userNameDisplay">Yuklanmoqda...</span>
+    </div>
+  </header>
+
+  <!-- Admin Switcher Bar (Only visible to Admins) -->
+  <div class="admin-switch-bar" id="adminBar">
+    <button class="switch-btn active" id="btnShowUserView" onclick="switchView('user')">
+      <i class="fa-solid fa-film"></i> Kino Katalogi
+    </button>
+    <button class="switch-btn" id="btnShowAdminView" onclick="switchView('admin')">
+      <i class="fa-solid fa-shield-halved"></i> Admin Boshqaruv
+    </button>
+  </div>
+
+  <!-- ==================== USER VIEW (CATALOG) ==================== -->
+  <main id="userView">
+    <!-- Search Bar -->
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="Kino nomi yoki kodini kiriting (101, 102...)" oninput="handleSearch()">
+      </div>
+    </div>
+
+    <!-- Genre Filter Chips -->
+    <div class="genre-scroll" id="genreContainer">
+      <div class="genre-chip active" onclick="filterGenre('Barchasi')">🎬 Barchasi</div>
+      <div class="genre-chip" onclick="filterGenre('Jangari')">💥 Jangari</div>
+      <div class="genre-chip" onclick="filterGenre('Komediya')">😂 Komediya</div>
+      <div class="genre-chip" onclick="filterGenre('Fantastika')">🚀 Fantastika</div>
+      <div class="genre-chip" onclick="filterGenre('Drama')">🎭 Drama</div>
+      <div class="genre-chip" onclick="filterGenre('Anime')">⚡ Anime</div>
+      <div class="genre-chip" onclick="filterGenre('Multfilm')">🦁 Multfilm</div>
+      <div class="genre-chip" onclick="filterGenre('Qo\'rqinchli')">👻 Qo'rqinchli</div>
+      <div class="genre-chip" onclick="filterGenre('Tarixiy')">🏛 Tarixiy</div>
+      <div class="genre-chip" onclick="filterGenre('Detektiv')">🔍 Detektiv</div>
+      <div class="genre-chip" onclick="filterGenre('Sarguzasht')">🗺 Sarguzasht</div>
+    </div>
+
+    <!-- Movies Catalog Grid -->
+    <section class="catalog-container">
+      <div class="catalog-header">
+        <h2 class="catalog-title" id="catalogHeading">🔥 Eng Sara Kinolar</h2>
+        <span style="font-size: 11px; color: var(--text-muted);" id="movieCount">0 ta kino</span>
+      </div>
+
+      <div class="movies-grid" id="moviesGrid">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fa-solid fa-film"></i>
+        <p>Hech qanday kino topilmadi.</p>
+        <button class="btn-deliver" style="margin-top: 15px; font-size: 13px;" onclick="openOrderModal()">
+          <i class="fa-solid fa-inbox"></i> Kinoni Buyurtma Qilish
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== ADMIN VIEW (CONTROLS) ==================== -->
+  <main id="adminView" class="admin-view-container">
+    <div style="margin-bottom: 16px;">
+      <h2 style="font-size: 18px; font-weight: 800;">👑 Admin Boshqaruv Markazi</h2>
+      <p style="font-size: 12px; color: var(--text-muted);">Gala Kino Botining to'liq mobil paneli</p>
+    </div>
+
+    <!-- Live Statistics -->
+    <div class="stats-card-grid">
+      <div class="stat-box">
+        <div class="stat-label">👥 Foydalanuvchilar</div>
+        <div class="stat-number" id="statUsers">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">🎬 Kinolar Soni</div>
+        <div class="stat-number" id="statMovies">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">📥 Jami Yuklashlar</div>
+        <div class="stat-number" id="statDownloads">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">📢 Obuna Kanallari</div>
+        <div class="stat-number" id="statChannels">0</div>
+      </div>
+    </div>
+
+    <!-- Management Quick Actions -->
+    <div class="action-list">
+      <a href="/movies" class="action-link">
+        <span><i class="fa-solid fa-video" style="color: var(--primary); margin-right: 8px;"></i> Kinolar Boshqaruvi</span>
+        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+      </a>
+      <a href="/channels" class="action-link">
+        <span><i class="fa-solid fa-bullhorn" style="color: var(--accent); margin-right: 8px;"></i> Majburiy Obuna & Taymerlar</span>
+        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+      </a>
+      <a href="/requests" class="action-link">
+        <span><i class="fa-solid fa-inbox" style="color: #00d2ff; margin-right: 8px;"></i> Foydalanuvchilar Buyurtmalari</span>
+        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+      </a>
+      <a href="/referrals" class="action-link">
+        <span><i class="fa-solid fa-users" style="color: #10b981; margin-right: 8px;"></i> Referal Statistikasi</span>
+        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+      </a>
+      <a href="/settings" class="action-link">
+        <span><i class="fa-solid fa-gear" style="color: #a855f7; margin-right: 8px;"></i> Dinamik Sozlamalar</span>
+        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+      </a>
+    </div>
+  </main>
+
+  <!-- ==================== MOVIE DETAIL MODAL ==================== -->
+  <div class="modal-overlay" id="movieModal" onclick="closeModalOnBg(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <span class="code-badge" id="modalCode" style="position: static; margin-bottom: 6px; display: inline-block;">101</span>
+          <h3 id="modalTitle" style="font-size: 18px; font-weight: 800;">Kino Nomi</h3>
+          <p id="modalMeta" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">2024 • Janr • AQSH</p>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin: 12px 0;">
+        <span class="rating-badge" style="position: static;"><i class="fa-solid fa-star"></i> <span id="modalRating">8.5</span></span>
+        <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;" id="modalDuration">2 soat</span>
+      </div>
+
+      <p id="modalDesc" style="font-size: 13px; color: #d1d5db; line-height: 1.5; margin-bottom: 16px;">Tavsif...</p>
+
+      <!-- Instant Delivery Button -->
+      <button class="btn-deliver" id="btnDeliverMovie" onclick="deliverCurrentMovie()">
+        <i class="fa-solid fa-play"></i> Kinoni Botda Ko'rish / Yuklab Olish
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== REQUEST MOVIE MODAL ==================== -->
+  <div class="modal-overlay" id="orderModal" onclick="closeModalOnBg(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-size: 16px; font-weight: 800;">📥 Kino Buyurtma Qilish</h3>
+        <button class="modal-close" onclick="closeOrderModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Qidirgan kinongiz topilmadimi? Nomini yozing, adminlarimiz uni botga joylashadi!</p>
+      <input type="text" id="orderInput" class="search-input" placeholder="Masalan: Interstellar 2" style="margin-bottom: 12px;">
+      <button class="btn-deliver" onclick="submitMovieOrder()">
+        <i class="fa-solid fa-paper-plane"></i> Buyurtmani Yuborish
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.enableClosingConfirmation();
+    }
+
+    const botUsername = "{{ bot_username }}";
+    let currentUser = null;
+    let isAdmin = false;
+    let allMovies = [];
+    let currentMovie = null;
+    let currentGenre = "Barchasi";
+
+    // Startup Authentication & Role Detection
+    async function initMiniApp() {
+      const tgUser = tg?.initDataUnsafe?.user;
+      const userId = tgUser?.id || 8430493961; // Fallback to current admin for direct browser testing
+
+      try {
+        const res = await fetch(`/api/me?user_id=${userId}`);
+        const data = await res.json();
+        currentUser = data.user || tgUser || { first_name: "Foydalanuvchi" };
+        isAdmin = data.is_admin;
+
+        // Render user badge
+        const badge = document.getElementById("userBadge");
+        const nameDisplay = document.getElementById("userNameDisplay");
+        nameDisplay.textContent = currentUser.first_name || currentUser.username || "Foydalanuvchi";
+
+        if (isAdmin) {
+          nameDisplay.innerHTML += ` <span class="admin-badge">Admin</span>`;
+          document.getElementById("adminBar").style.display = "flex";
+          loadAdminStats(userId);
+        }
+
+        // Fetch Movies
+        loadMovies();
+      } catch (err) {
+        console.error("Auth error:", err);
+        loadMovies();
+      }
+    }
+
+    // Load Movies from API
+    async function loadMovies(genre = "", query = "") {
+      try {
+        const res = await fetch(`/api/movies?genre=${encodeURIComponent(genre)}&q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        allMovies = data.movies || [];
+        renderMovies(allMovies);
+      } catch (err) {
+        console.error("Failed to load movies:", err);
+      }
+    }
+
+    // Render Movie Cards Grid
+    function renderMovies(movies) {
+      const grid = document.getElementById("moviesGrid");
+      const empty = document.getElementById("emptyState");
+      const count = document.getElementById("movieCount");
+
+      count.textContent = `${movies.length} ta kino`;
+      grid.innerHTML = "";
+
+      if (movies.length === 0) {
+        grid.style.display = "none";
+        empty.style.display = "block";
+        return;
+      }
+
+      grid.style.display = "grid";
+      empty.style.display = "none";
+
+      movies.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.onclick = () => openMovieDetail(m);
+
+        card.innerHTML = `
+          <div class="poster-wrap">
+            <i class="fa-solid fa-film"></i>
+            <span class="rating-badge"><i class="fa-solid fa-star"></i> ${m.rating || 7.5}</span>
+            <span class="code-badge">${m.code}</span>
+          </div>
+          <div class="card-info">
+            <div class="card-title">${m.title}</div>
+            <div class="card-meta">
+              <span>${m.year}</span>
+              <span>${m.genres?.split(',')[0] || 'Kino'}</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Filter by Genre
+    function filterGenre(genre) {
+      currentGenre = genre;
+      document.querySelectorAll(".genre-chip").forEach(chip => {
+        chip.classList.toggle("active", chip.textContent.includes(genre));
+      });
+      loadMovies(genre === "Barchasi" ? "" : genre, document.getElementById("searchInput").value);
+    }
+
+    // Search Handler
+    let searchTimeout = null;
+    function handleSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const q = document.getElementById("searchInput").value.trim();
+        loadMovies(currentGenre === "Barchasi" ? "" : currentGenre, q);
+      }, 300);
+    }
+
+    // Movie Detail Modal
+    function openMovieDetail(m) {
+      currentMovie = m;
+      document.getElementById("modalCode").textContent = m.code;
+      document.getElementById("modalTitle").textContent = m.title;
+      document.getElementById("modalMeta").textContent = `${m.year} • ${m.genres || 'Kino'} • ${m.country || 'Dunyo'}`;
+      document.getElementById("modalRating").textContent = m.rating || 7.5;
+      document.getElementById("modalDuration").textContent = m.duration || "1 soat 45 daqiqa";
+      document.getElementById("modalDesc").textContent = m.description || "Ajoyib kino, tomosha qiling!";
+      document.getElementById("movieModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("movieModal").style.display = "none";
+    }
+
+    function closeModalOnBg(e) {
+      if (e.target.classList.contains("modal-overlay")) {
+        closeModal();
+        closeOrderModal();
+      }
+    }
+
+    // Deliver Movie back to Telegram Chat
+    function deliverCurrentMovie() {
+      if (!currentMovie) return;
+      const code = currentMovie.code;
+
+      if (tg && tg.sendData) {
+        // Send data to Telegram Bot, which automatically closes webapp and sends video
+        tg.sendData(code);
+      } else {
+        // Fallback: Open bot link with start parameter
+        window.open(`https://t.me/${botUsername}?start=${code}`, "_blank");
+      }
+      closeModal();
+    }
+
+    // Switch between User & Admin views (for Admins)
+    function switchView(view) {
+      const userView = document.getElementById("userView");
+      const adminView = document.getElementById("adminView");
+      const btnUser = document.getElementById("btnShowUserView");
+      const btnAdmin = document.getElementById("btnShowAdminView");
+
+      if (view === "admin") {
+        userView.style.display = "none";
+        adminView.style.display = "block";
+        btnUser.classList.remove("active");
+        btnAdmin.classList.add("active");
+      } else {
+        userView.style.display = "block";
+        adminView.style.display = "none";
+        btnUser.classList.add("active");
+        btnAdmin.classList.remove("active");
+      }
+    }
+
+    // Load Admin Stats
+    async function loadAdminStats(userId) {
+      try {
+        const res = await fetch(`/api/admin/stats?user_id=${userId}`);
+        const data = await res.json();
+        const s = data.stats;
+        document.getElementById("statUsers").textContent = s.total_users || 0;
+        document.getElementById("statMovies").textContent = s.total_movies || 0;
+        document.getElementById("statDownloads").textContent = s.total_downloads || 0;
+        document.getElementById("statChannels").textContent = s.active_channels || 0;
+      } catch (err) {
+        console.error("Failed to load admin stats:", err);
+      }
+    }
+
+    // Order Movie Modal
+    function openOrderModal() {
+      document.getElementById("orderModal").style.display = "flex";
+    }
+
+    function closeOrderModal() {
+      document.getElementById("orderModal").style.display = "none";
+    }
+
+    async function submitMovieOrder() {
+      const title = document.getElementById("orderInput").value.trim();
+      if (!title) {
+        alert("Iltimos, kino nomini yozing!");
+        return;
+      }
+      try {
+        await fetch("/api/request_movie", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: currentUser?.id || 0,
+            user_name: currentUser?.first_name || "Foydalanuvchi",
+            title: title
+          })
+        });
+        alert("Buyurtmangiz qabul qilindi! Adminlarimiz tez orada kinoni joylashadi.");
+        document.getElementById("orderInput").value = "";
+        closeOrderModal();
+      } catch (err) {
+        alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
+      }
+    }
+
+    // Run on startup
+    initMiniApp();
+  </script>
+</body>
+</html>

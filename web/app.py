@@ -187,3 +187,64 @@ async def handle_save_settings(request: Request):
         if isinstance(value, str):
             await set_setting(key, value.strip())
     return RedirectResponse(url="/settings", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ===================== TELEGRAM MINI APP (TMA) =====================
+
+@app.get("/app", response_class=HTMLResponse)
+async def serve_miniapp(request: Request):
+    """Serve the role-aware Telegram Mini App."""
+    return templates.TemplateResponse(
+        request=request,
+        name="miniapp.html",
+        context={"bot_username": settings.BOT_USERNAME}
+    )
+
+
+@app.get("/api/me")
+async def api_me(user_id: int = 0):
+    """Check user identity and role (Admin vs Regular User)."""
+    is_admin = user_id in settings.ADMIN_IDS
+    from database import get_user
+    user = await get_user(user_id) if user_id else None
+    return {
+        "user_id": user_id,
+        "is_admin": is_admin,
+        "user": user,
+        "bot_username": settings.BOT_USERNAME
+    }
+
+
+@app.get("/api/movies")
+async def api_movies(q: str = "", genre: str = ""):
+    """Return filtered or full movies catalog."""
+    from database import search_movies, get_movies_by_genre
+    if q.strip():
+        movies = await search_movies(q.strip(), limit=50)
+    elif genre.strip() and genre.strip().lower() != "barchasi":
+        movies = await get_movies_by_genre(genre.strip(), limit=50)
+    else:
+        movies = await get_all_movies(limit=100)
+    return {"movies": movies}
+
+
+@app.post("/api/request_movie")
+async def api_request_movie(request: Request):
+    from database import create_movie_request
+    data = await request.json()
+    user_id = data.get("user_id", 0)
+    user_name = data.get("user_name", "Foydalanuvchi")
+    title = data.get("title", "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Kino nomi kiritilmadi!")
+    req_id = await create_movie_request(user_id, user_name, title)
+    return {"status": "ok", "request_id": req_id}
+
+
+@app.get("/api/admin/stats")
+async def api_admin_stats(user_id: int = 0):
+    if user_id not in settings.ADMIN_IDS:
+        raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
+    stats = await get_system_stats()
+    return {"stats": stats}
+
