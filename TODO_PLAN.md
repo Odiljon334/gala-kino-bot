@@ -85,4 +85,4 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
 - [x] 31. Mini App UI: "💎 VIP Obuna" modal oynasi, kartani 1-bosishda nusxalash (`copy to clipboard`), va "❤️ Sevimlilar" (Watchlist) funksiyasini ulash.
 - [x] 32. Mini App: Kinoni do'stlarga ulashish ("📤 Ulashish") va kino kodini 1-bosishda nusxalash imkoniyati.
 - [x] 33. Avtomatlashtirilgan testlar to'plamini yangilash va verification gate (barcha testlarni 100% muvaffaqiyatli o'tkazish).
-- [ ] 34. Git repository'ni barcha yangilanishlar bilan GitHub'ga (`git@github.com:Odiljon334/gala-kino-bot.git`) push qilish.
+- [x] 34. Git repository'ni barcha yangilanishlar bilan GitHub'ga (`git@github.com:Odiljon334/gala-kino-bot.git`) push qilish.
