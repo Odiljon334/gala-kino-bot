@@ -10,8 +10,8 @@
   <style>
     :root {
       --bg-color: #0b0c10;
-      --card-bg: #1f2833;
-      --card-hover: #293442;
+      --card-bg: #161b24;
+      --card-hover: #222b38;
       --primary: #e50914;
       --accent: #f5c518;
       --text-main: #ffffff;
@@ -117,7 +117,7 @@
 
     /* Search & Filters */
     .search-box {
-      padding: 12px 16px;
+      padding: 12px 16px 8px;
     }
 
     .search-input-wrap {
@@ -153,7 +153,7 @@
     .genre-scroll {
       display: flex;
       gap: 8px;
-      padding: 4px 16px 12px;
+      padding: 8px 16px 12px;
       overflow-x: auto;
       scrollbar-width: none;
     }
@@ -222,8 +222,8 @@
 
     .poster-wrap {
       width: 100%;
-      height: 160px;
-      background: linear-gradient(135deg, #1c2230, #0f131a);
+      height: 150px;
+      background: linear-gradient(135deg, #1d2330, #0c1017);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -304,7 +304,7 @@
     .modal-content {
       background: #151922;
       width: 100%;
-      max-height: 85vh;
+      max-height: 88vh;
       border-radius: 20px 20px 0 0;
       border-top: 1px solid var(--border-color);
       overflow-y: auto;
@@ -353,9 +353,22 @@
       cursor: pointer;
       margin-top: 16px;
       box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+      transition: opacity 0.2s;
     }
 
-    /* Admin Panel View */
+    .btn-deliver:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      box-shadow: none;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Admin View */
     .admin-view-container {
       display: none;
       padding: 16px;
@@ -388,60 +401,35 @@
       color: var(--text-muted);
     }
 
-    .action-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .action-link {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px;
+    .admin-quick-add {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
     }
 
-    /* Bottom Navigation Bar */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(11, 12, 16, 0.95);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0;
-      z-index: 100;
+    .admin-input-group {
+      margin-bottom: 10px;
     }
 
-    .nav-tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
+    .admin-input-group label {
+      display: block;
+      font-size: 11px;
       color: var(--text-muted);
-      font-size: 10px;
+      margin-bottom: 4px;
       font-weight: 600;
-      cursor: pointer;
-      border: none;
-      background: none;
-      flex: 1;
     }
 
-    .nav-tab i {
-      font-size: 18px;
-    }
-
-    .nav-tab.active {
-      color: var(--primary);
+    .admin-input-group input, .admin-input-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
     }
 
     .empty-state {
@@ -466,7 +454,7 @@
     </div>
     <div class="user-pill" id="userBadge">
       <i class="fa-solid fa-user"></i>
-      <span id="userNameDisplay">Yuklanmoqda...</span>
+      <span id="userNameDisplay">Foydalanuvchi</span>
     </div>
   </header>
 
@@ -486,7 +474,7 @@
     <div class="search-box">
       <div class="search-input-wrap">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" class="search-input" placeholder="Kino nomi yoki kodini kiriting (101, 102...)" oninput="handleSearch()">
+        <input type="text" id="searchInput" class="search-input" placeholder="Kino nomi yoki kodi (101, 102...)" oninput="handleSearch()">
       </div>
     </div>
 
@@ -518,7 +506,7 @@
 
       <div class="empty-state" id="emptyState" style="display: none;">
         <i class="fa-solid fa-film"></i>
-        <p>Hech qanday kino topilmadi.</p>
+        <p>Hozircha kinolar mavjud emas yoki qidiruv bo'yicha topilmadi.</p>
         <button class="btn-deliver" style="margin-top: 15px; font-size: 13px;" onclick="openOrderModal()">
           <i class="fa-solid fa-inbox"></i> Kinoni Buyurtma Qilish
         </button>
@@ -553,28 +541,40 @@
       </div>
     </div>
 
-    <!-- Management Quick Actions -->
-    <div class="action-list">
-      <a href="/movies" class="action-link">
-        <span><i class="fa-solid fa-video" style="color: var(--primary); margin-right: 8px;"></i> Kinolar Boshqaruvi</span>
-        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
-      </a>
-      <a href="/channels" class="action-link">
-        <span><i class="fa-solid fa-bullhorn" style="color: var(--accent); margin-right: 8px;"></i> Majburiy Obuna & Taymerlar</span>
-        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
-      </a>
-      <a href="/requests" class="action-link">
-        <span><i class="fa-solid fa-inbox" style="color: #00d2ff; margin-right: 8px;"></i> Foydalanuvchilar Buyurtmalari</span>
-        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
-      </a>
-      <a href="/referrals" class="action-link">
-        <span><i class="fa-solid fa-users" style="color: #10b981; margin-right: 8px;"></i> Referal Statistikasi</span>
-        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
-      </a>
-      <a href="/settings" class="action-link">
-        <span><i class="fa-solid fa-gear" style="color: #a855f7; margin-right: 8px;"></i> Dinamik Sozlamalar</span>
-        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
-      </a>
+    <!-- Quick In-App Movie Adder -->
+    <div class="admin-quick-add">
+      <h3 style="font-size: 14px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> Mini Appdan Tezkor Kino Qo'shish
+      </h3>
+      <div class="admin-input-group">
+        <label>Kino Kodi (Masalan: 101, AVATAR):</label>
+        <input type="text" id="addMovieCode" placeholder="101">
+      </div>
+      <div class="admin-input-group">
+        <label>Kino Nomi:</label>
+        <input type="text" id="addMovieTitle" placeholder="Jon Uik 4">
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="admin-input-group" style="flex: 1;">
+          <label>Yili:</label>
+          <input type="number" id="addMovieYear" value="2024">
+        </div>
+        <div class="admin-input-group" style="flex: 1;">
+          <label>Janri:</label>
+          <input type="text" id="addMovieGenres" placeholder="Jangari, Kriminal">
+        </div>
+      </div>
+      <div class="admin-input-group">
+        <label>Telegram Video File ID (yoki havolasi):</label>
+        <input type="text" id="addMovieFileId" placeholder="BAACAgIAAxkDAAMwavyw...">
+      </div>
+      <div class="admin-input-group">
+        <label>Tavsifi (Sinopsis):</label>
+        <textarea id="addMovieDesc" rows="2" placeholder="Kino haqida qisqacha ma'lumot"></textarea>
+      </div>
+      <button class="btn-deliver" onclick="submitQuickMovie()" style="margin-top: 10px; padding: 12px;">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Kinoni Bazaga Saqlash
+      </button>
     </div>
   </main>
 
@@ -612,7 +612,7 @@
         <button class="modal-close" onclick="closeOrderModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Qidirgan kinongiz topilmadimi? Nomini yozing, adminlarimiz uni botga joylashadi!</p>
-      <input type="text" id="orderInput" class="search-input" placeholder="Masalan: Interstellar 2" style="margin-bottom: 12px;">
+      <input type="text" id="orderInput" class="search-input" placeholder="Masalan: Forsaj 11" style="margin-bottom: 12px;">
       <button class="btn-deliver" onclick="submitMovieOrder()">
         <i class="fa-solid fa-paper-plane"></i> Buyurtmani Yuborish
       </button>
@@ -625,7 +625,7 @@
     if (tg) {
       tg.ready();
       tg.expand();
-      tg.enableClosingConfirmation();
+      if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
     }
 
     const botUsername = "{{ bot_username }}";
@@ -638,7 +638,7 @@
     // Startup Authentication & Role Detection
     async function initMiniApp() {
       const tgUser = tg?.initDataUnsafe?.user;
-      const userId = tgUser?.id || 8430493961; // Fallback to current admin for direct browser testing
+      const userId = tgUser?.id || 0;
 
       try {
         const res = await fetch(`/api/me?user_id=${userId}`);
@@ -647,7 +647,6 @@
         isAdmin = data.is_admin;
 
         // Render user badge
-        const badge = document.getElementById("userBadge");
         const nameDisplay = document.getElementById("userNameDisplay");
         nameDisplay.textContent = currentUser.first_name || currentUser.username || "Foydalanuvchi";
 
@@ -657,7 +656,6 @@
           loadAdminStats(userId);
         }
 
-        // Fetch Movies
         loadMovies();
       } catch (err) {
         console.error("Auth error:", err);
@@ -761,17 +759,55 @@
     }
 
     // Deliver Movie back to Telegram Chat
-    function deliverCurrentMovie() {
+    async function deliverCurrentMovie() {
       if (!currentMovie) return;
       const code = currentMovie.code;
+      const btn = document.getElementById("btnDeliverMovie");
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Yuborilmoqda...`;
+      btn.disabled = true;
 
-      if (tg && tg.sendData) {
-        // Send data to Telegram Bot, which automatically closes webapp and sends video
-        tg.sendData(code);
-      } else {
-        // Fallback: Open bot link with start parameter
-        window.open(`https://t.me/${botUsername}?start=${code}`, "_blank");
+      const uid = currentUser?.id || tg?.initDataUnsafe?.user?.id || 0;
+
+      try {
+        if (uid) {
+          const res = await fetch("/api/deliver", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: uid, code: code })
+          });
+          const data = await res.json();
+          if (data.status === "ok") {
+            if (tg && tg.showPopup) {
+              tg.showPopup({
+                title: "🎬 Kino Yuborildi!",
+                message: `«${currentMovie.title}» kinosi @${botUsername} chatiga muvaffaqiyatli yuborildi. Chatga o'ting!`,
+                buttons: [{ type: "close" }]
+              }, () => {
+                if (tg.close) tg.close();
+              });
+              closeModal();
+              return;
+            } else {
+              alert(`«${currentMovie.title}» kinosi botingizga yuborildi!`);
+              if (tg && tg.close) tg.close();
+              closeModal();
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Direct deliver failed, using link fallback:", err);
       }
+
+      // Universal Fallback: Open in bot directly
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/${botUsername}?start=${code}`);
+      } else {
+        window.location.href = `https://t.me/${botUsername}?start=${code}`;
+      }
+      btn.innerHTML = originalText;
+      btn.disabled = false;
       closeModal();
     }
 
@@ -810,6 +846,51 @@
       }
     }
 
+    // Quick Admin Add Movie
+    async function submitQuickMovie() {
+      const code = document.getElementById("addMovieCode").value.trim();
+      const title = document.getElementById("addMovieTitle").value.trim();
+      const year = document.getElementById("addMovieYear").value.trim();
+      const genres = document.getElementById("addMovieGenres").value.trim();
+      const fileId = document.getElementById("addMovieFileId").value.trim();
+      const desc = document.getElementById("addMovieDesc").value.trim();
+
+      if (!code || !title || !fileId) {
+        alert("Kodi, Nomi va File ID kiritilishi shart!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/admin/movies/add_json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            admin_id: currentUser?.id || tg?.initDataUnsafe?.user?.id || 0,
+            code: code,
+            title: title,
+            year: year || 2024,
+            genres: genres || "Kino",
+            file_id: fileId,
+            description: desc || "Ajoyib kino."
+          })
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          alert(`🎉 "${title}" kinosi muvaffaqiyatli saqlandi!`);
+          document.getElementById("addMovieCode").value = "";
+          document.getElementById("addMovieTitle").value = "";
+          document.getElementById("addMovieFileId").value = "";
+          document.getElementById("addMovieDesc").value = "";
+          loadMovies();
+          loadAdminStats(currentUser?.id || 0);
+        } else {
+          alert("Xatolik yuz berdi: " + (data.detail || "Saqlanmadi"));
+        }
+      } catch (e) {
+        alert("Server bilan ulanishda xatolik yuz berdi.");
+      }
+    }
+
     // Order Movie Modal
     function openOrderModal() {
       document.getElementById("orderModal").style.display = "flex";
@@ -830,7 +911,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            user_id: currentUser?.id || 0,
+            user_id: currentUser?.id || tg?.initDataUnsafe?.user?.id || 0,
             user_name: currentUser?.first_name || "Foydalanuvchi",
             title: title
           })

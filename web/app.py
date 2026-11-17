@@ -36,7 +36,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # ===================== ROUTES =====================
 
-@app.get("/", response_class=HTMLResponse)
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def dashboard_home(request: Request):
     stats = await get_system_stats()
     settings_dict = await get_all_settings()
@@ -191,7 +191,7 @@ async def handle_save_settings(request: Request):
 
 # ===================== TELEGRAM MINI APP (TMA) =====================
 
-@app.get("/app", response_class=HTMLResponse)
+@app.api_route("/app", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def serve_miniapp(request: Request):
     """Serve the role-aware Telegram Mini App."""
     return templates.TemplateResponse(
@@ -201,7 +201,7 @@ async def serve_miniapp(request: Request):
     )
 
 
-@app.get("/api/me")
+@app.api_route("/api/me", methods=["GET", "HEAD"])
 async def api_me(user_id: int = 0):
     """Check user identity and role (Admin vs Regular User)."""
     is_admin = user_id in settings.ADMIN_IDS
@@ -215,7 +215,7 @@ async def api_me(user_id: int = 0):
     }
 
 
-@app.get("/api/movies")
+@app.api_route("/api/movies", methods=["GET", "HEAD"])
 async def api_movies(q: str = "", genre: str = ""):
     """Return filtered or full movies catalog."""
     from database import search_movies, get_movies_by_genre
@@ -226,6 +226,37 @@ async def api_movies(q: str = "", genre: str = ""):
     else:
         movies = await get_all_movies(limit=100)
     return {"movies": movies}
+
+
+@app.post("/api/deliver")
+async def api_deliver_movie(request: Request):
+    """Deliver movie to user directly via Bot API from Mini App."""
+    from aiogram import Bot
+    from database import get_or_create_user
+    from handlers.user import deliver_movie_by_code
+    
+    data = await request.json()
+    user_id = data.get("user_id")
+    code = data.get("code", "").strip().upper()
+    if not user_id or not code:
+        raise HTTPException(status_code=400, detail="user_id va code talab qilinadi")
+    
+    user = await get_or_create_user(user_id, None, "MiniApp User")
+    bot = Bot(token=settings.BOT_TOKEN)
+    try:
+        class FakeMessage:
+            def __init__(self, chat_id):
+                self.chat = type("Chat", (), {"id": chat_id})()
+            async def answer(self, text, reply_markup=None):
+                return await bot.send_message(chat_id=self.chat.id, text=text, reply_markup=reply_markup)
+                
+        fake_msg = FakeMessage(user_id)
+        success = await deliver_movie_by_code(fake_msg, bot, code, user)
+        return {"status": "ok" if success else "error"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    finally:
+        await bot.session.close()
 
 
 @app.post("/api/request_movie")
@@ -247,4 +278,54 @@ async def api_admin_stats(user_id: int = 0):
         raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
     stats = await get_system_stats()
     return {"stats": stats}
+
+
+@app.post("/api/admin/movies/add_json")
+async def api_admin_add_movie(request: Request):
+    data = await request.json()
+    admin_id = data.get("admin_id", 0)
+    if admin_id not in settings.ADMIN_IDS:
+        raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
+    
+    movie_dict = {
+        "code": data["code"].strip().upper(),
+        "title": data["title"].strip(),
+        "year": int(data.get("year", 2024)),
+        "country": data.get("country", "AQSH").strip(),
+        "genres": data.get("genres", "Kino").strip(),
+        "language": data.get("language", "O'zbek tilida").strip(),
+        "quality_720_file_id": data.get("file_id", "").strip(),
+        "rating": float(data.get("rating", 7.5)),
+        "description": data.get("description", "Ajoyib kino tomosha qiling.").strip(),
+        "duration": data.get("duration", "1 soat 45 daqiqa").strip()
+    }
+    await add_movie(movie_dict)
+    return {"status": "ok"}
+
+
+@app.get("/api/admin/channels_json")
+async def api_admin_channels(user_id: int = 0):
+    if user_id not in settings.ADMIN_IDS:
+        raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
+    channels = await get_all_channels()
+    return {"channels": channels}
+
+
+@app.post("/api/admin/channels/add_json")
+async def api_admin_add_channel(request: Request):
+    data = await request.json()
+    admin_id = data.get("admin_id", 0)
+    if admin_id not in settings.ADMIN_IDS:
+        raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
+    
+    await add_channel(
+        title=data["title"].strip(),
+        invite_link=data["invite_link"].strip(),
+        channel_id=data.get("channel_id"),
+        button_text=data["title"].strip(),
+        timer_seconds=int(data.get("timer_seconds", 0)),
+        is_active=1
+    )
+    return {"status": "ok"}
+
 

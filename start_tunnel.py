@@ -55,6 +55,18 @@ def start_tunnel():
         print("❌ Tunnel yaratib bo'lmadi!")
         return None, proc
 
+    # Continuously drain stdout in background thread so pipe never blocks
+    import threading
+    def drain_pipe(stream):
+        try:
+            for _ in stream:
+                pass
+        except Exception:
+            pass
+            
+    drainer = threading.Thread(target=drain_pipe, args=(proc.stdout,), daemon=True)
+    drainer.start()
+
     return tunnel_url, proc
 
 
