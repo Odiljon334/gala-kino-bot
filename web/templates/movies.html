@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinolar Boshqaruvi — Gala Kino</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <span>🎬</span> Gala Kino
+    </div>
+    <nav class="nav-links">
+      <a href="/" class="nav-item">📊 Boshqaruv Paneli</a>
+      <a href="/channels" class="nav-item">📢 Majburiy Obuna & Taymer</a>
+      <a href="/movies" class="nav-item active">🎬 Kinolar Boshqaruvi</a>
+      <a href="/requests" class="nav-item">📥 Kino Buyurtmalari</a>
+      <a href="/referrals" class="nav-item">👥 Referallar</a>
+      <a href="/settings" class="nav-item">⚙️ Dinamik Sozlamalar</a>
+    </nav>
+  </aside>
+
+  <main class="main-wrapper">
+    <header class="header">
+      <div>
+        <h1 class="page-title">🎬 Kinolar va Seriallar Boshqaruvi</h1>
+        <p class="page-subtitle">Yangi kinolar qo'shing, kodlarni boshqaring va yuklashlarni kuzating</p>
+      </div>
+    </header>
+
+    <!-- Add Movie Form -->
+    <div class="card-panel">
+      <h2 class="panel-title">➕ Yangi Kino Qo'shish</h2>
+      <form action="/movies/add" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Kino Kodi * (Unikal raqam yoki so'z)</label>
+            <input type="text" name="code" class="form-input" placeholder="101 yoki AVATAR2" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kino Nomi *</label>
+            <input type="text" name="title" class="form-input" placeholder="Forsaj 10" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Yili</label>
+            <input type="number" name="year" class="form-input" value="2024">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Davlati</label>
+            <input type="text" name="country" class="form-input" value="AQSH">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Janrlari</label>
+            <input type="text" name="genres" class="form-input" placeholder="Jangari, Komediya, Fantastika">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tili / Dublyaj</label>
+            <input type="text" name="language" class="form-input" value="O'zbek tilida">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telegram Video File ID *</label>
+            <input type="text" name="quality_720_file_id" class="form-input" placeholder="BAACAgIAAxkBAAI..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reyting (IMDb)</label>
+            <input type="number" step="0.1" name="rating" class="form-input" value="7.8">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+          <label class="form-label">Tavsif (Sinopsis)</label>
+          <textarea name="description" class="form-textarea" rows="3" placeholder="Kino haqida qisqacha ma'lumot..."></textarea>
+        </div>
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">🎬 Kinoni Saqlash</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Movies List -->
+    <div class="card-panel">
+      <h2 class="panel-title">📋 Mavjud Kinolar ({{ movies | length }} ta)</h2>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Kodi</th>
+              <th>Nomi</th>
+              <th>Yili</th>
+              <th>Janri</th>
+              <th>Ko'rishlar</th>
+              <th>Yuklashlar</th>
+              <th>Amallar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in movies %}
+            <tr>
+              <td><code>{{ m.code }}</code></td>
+              <td><strong>{{ m.title }}</strong></td>
+              <td>{{ m.year }}</td>
+              <td>{{ m.genres }}</td>
+              <td>{{ m.views_count }}</td>
+              <td>{{ m.downloads_count }}</td>
+              <td>
+                <form action="/movies/delete/{{ m.id }}" method="POST" onsubmit="return confirm('Kinoni o\'chirmoqchimisiz?');">
+                  <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">O'chirish</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">
+                Hozircha hech qanday kino qo'shilmagan.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

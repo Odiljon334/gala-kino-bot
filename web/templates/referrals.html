@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Referallar Statistikasi — Gala Kino</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <span>🎬</span> Gala Kino
+    </div>
+    <nav class="nav-links">
+      <a href="/" class="nav-item">📊 Boshqaruv Paneli</a>
+      <a href="/channels" class="nav-item">📢 Majburiy Obuna & Taymer</a>
+      <a href="/movies" class="nav-item">🎬 Kinolar Boshqaruvi</a>
+      <a href="/requests" class="nav-item">📥 Kino Buyurtmalari</a>
+      <a href="/referrals" class="nav-item active">👥 Referallar</a>
+      <a href="/settings" class="nav-item">⚙️ Dinamik Sozlamalar</a>
+    </nav>
+  </aside>
+
+  <main class="main-wrapper">
+    <header class="header">
+      <div>
+        <h1 class="page-title">👥 Referallar va Takliflar Tizimi</h1>
+        <p class="page-subtitle">Eng faol foydalanuvchilar va takliflar orqali bot o'sishi tahlili</p>
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">VIP uchun do'stlar soni</span>
+        <div class="stat-value">{{ settings_dict.get('referral_friends_for_vip', '5') }} ta</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">VIP mukofot muddati</span>
+        <div class="stat-value">{{ settings_dict.get('referral_reward_vip_days', '7') }} kun</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Har bir do'st uchun yuklash</span>
+        <div class="stat-value">+{{ settings_dict.get('referral_reward_downloads', '3') }} ta</div>
+      </div>
+    </div>
+
+    <div class="card-panel">
+      <h2 class="panel-title">🏆 Top-10 Eng Ko'p Do'st Taklif Qilganlar</h2>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>O'rin</th>
+              <th>Foydalanuvchi</th>
+              <th>Username</th>
+              <th>Telegram ID</th>
+              <th>Taklif Qilgan Do'stlari</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in top_referrers %}
+            <tr>
+              <td><strong>#{{ loop.index }}</strong></td>
+              <td><strong>{{ r.first_name }}</strong></td>
+              <td>
+                {% if r.username %}
+                <a href="https://t.me/{{ r.username }}" target="_blank" style="color: var(--primary);">@{{ r.username }}</a>
+                {% else %}
+                <span style="color: var(--text-muted);">-</span>
+                {% endif %}
+              </td>
+              <td><code>{{ r.telegram_id }}</code></td>
+              <td><span class="badge badge-success">{{ r.ref_count }} ta do'st</span></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px;">
+                Hozircha referallar ma'lumoti mavjud emas.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

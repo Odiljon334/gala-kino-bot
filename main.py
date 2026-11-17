@@ -1,0 +1,96 @@
+"""
+Main Application Entrypoint for Kinochi Bot Pro.
+Runs the Aiogram Telegram Bot polling alongside the FastAPI Web Dashboard concurrently.
+"""
+import asyncio
+import logging
+import uvicorn
+from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
+from aiogram.fsm.storage.memory import MemoryStorage
+
+from config import settings
+from database import init_db
+from handlers.admin import admin_router
+from handlers.user import user_router
+from handlers.inline import inline_router
+from handlers.referral import referral_router
+from handlers.requests import requests_router
+from web.app import app as web_app
+
+# Configure Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("kinochi_bot")
+
+
+async def run_bot(bot: Bot, dp: Dispatcher):
+    """Start Telegram bot polling."""
+    logger.info("Starting Telegram Bot polling...")
+    # Include routers
+    dp.include_router(admin_router)
+    dp.include_router(inline_router)
+    dp.include_router(referral_router)
+    dp.include_router(requests_router)
+    dp.include_router(user_router)
+    
+    # Delete webhook if any
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception as e:
+        logger.warning(f"Could not drop webhook: {e}")
+        
+    await dp.start_polling(bot)
+
+
+async def run_web():
+    """Start FastAPI Web Dashboard."""
+    logger.info(f"Starting Web Dashboard on {settings.WEB_HOST}:{settings.WEB_PORT}...")
+    config = uvicorn.Config(
+        app=web_app,
+        host=settings.WEB_HOST,
+        port=settings.WEB_PORT,
+        log_level="warning"
+    )
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+async def main():
+    """Initialize DB and run services concurrently."""
+    # 1. Initialize SQLite Database & Dynamic Settings
+    await init_db()
+    logger.info("Database and dynamic settings ready.")
+    
+    # 2. Check Bot Token
+    if not settings.BOT_TOKEN or settings.BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
+        logger.warning(
+            "⚠️ BOT_TOKEN is not set in .env! Telegram bot polling will be skipped. "
+            "Please add your Telegram bot token to .env file to enable the Telegram bot."
+        )
+        # Run Web Dashboard only
+        await run_web()
+        return
+
+    # 3. Create Bot and Dispatcher
+    bot = Bot(
+        token=settings.BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    )
+    dp = Dispatcher(storage=MemoryStorage())
+
+    # 4. Run Both Bot and Web Dashboard concurrently
+    await asyncio.gather(
+        run_bot(bot, dp),
+        run_web()
+    )
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Kinochi Bot Pro stopped.")

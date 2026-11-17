@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Majburiy Obuna & Taymerlar — Gala Kino</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <span>🎬</span> Gala Kino
+    </div>
+    <nav class="nav-links">
+      <a href="/" class="nav-item">📊 Boshqaruv Paneli</a>
+      <a href="/channels" class="nav-item active">📢 Majburiy Obuna & Taymer</a>
+      <a href="/movies" class="nav-item">🎬 Kinolar Boshqaruvi</a>
+      <a href="/requests" class="nav-item">📥 Kino Buyurtmalari</a>
+      <a href="/referrals" class="nav-item">👥 Referallar</a>
+      <a href="/settings" class="nav-item">⚙️ Dinamik Sozlamalar</a>
+    </nav>
+  </aside>
+
+  <main class="main-wrapper">
+    <header class="header">
+      <div>
+        <h1 class="page-title">📢 Majburiy Obuna va Taymerlar Boshqaruvi</h1>
+        <p class="page-subtitle">Kanal linkini yuklang, taymerni qo'ying va u darhol botga majburiy obuna qilib qo'shiladi!</p>
+      </div>
+    </header>
+
+    <!-- Add Channel Form -->
+    <div class="card-panel">
+      <h2 class="panel-title">➕ Yangi Kanal yoki Homiy Havolasini Qo'shish</h2>
+      <form action="/channels/add" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Kanal Havolasi (Link) *</label>
+            <input type="url" name="invite_link" class="form-input" placeholder="https://t.me/mening_kanalim yoki t.me/+..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kanal Nomi yoki Tugma Matni *</label>
+            <input type="text" name="title" class="form-input" placeholder="➕ 1-Kanalga a'zo bo'lish" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kanal ID yoki @username (Ixtiyoriy)</label>
+            <input type="text" name="channel_id" class="form-input" placeholder="-1001234567890 yoki @kanal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">⏱ Taymer (Soniyalarda: 0 = Darhol majburiy)</label>
+            <input type="number" name="timer_seconds" class="form-input" value="0" min="0" max="86400" placeholder="0 = darhol, 30 = 30 sekund">
+          </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">💾 Kanalni Obunaga Qo'shish</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Channels List -->
+    <div class="card-panel">
+      <h2 class="panel-title">📋 Ulangan Kanallar Ro'yxati ({{ channels | length }} ta)</h2>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nomi / Tugma</th>
+              <th>Havola (Link)</th>
+              <th>Taymer</th>
+              <th>Bosilishlar</th>
+              <th>Holati</th>
+              <th>Amallar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ch in channels %}
+            <tr>
+              <td>#{{ ch.id }}</td>
+              <td><strong>{{ ch.title }}</strong></td>
+              <td><a href="{{ ch.invite_link }}" target="_blank" style="color: var(--primary);">{{ ch.invite_link }}</a></td>
+              <td>
+                {% if ch.timer_seconds > 0 %}
+                <span class="badge badge-timer">⏱ {{ ch.timer_seconds }} soniya</span>
+                {% else %}
+                <span class="badge badge-success">Darhol Majburiy</span>
+                {% endif %}
+              </td>
+              <td>{{ ch.clicks_count }} marta</td>
+              <td>
+                {% if ch.is_active %}
+                <span class="badge badge-success">Faol</span>
+                {% else %}
+                <span class="badge badge-danger">O'chirilgan</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display: flex; gap: 8px;">
+                  <form action="/channels/toggle/{{ ch.id }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-success" style="padding: 6px 12px; font-size: 0.8rem;">
+                      {% if ch.is_active %}O'chirish{% else %}Yoqish{% endif %}
+                    </button>
+                  </form>
+                  <form action="/channels/delete/{{ ch.id }}" method="POST" style="display: inline;" onsubmit="return confirm('Haqiqatdan ham ushbu kanalni o\'chirmoqchimisiz?');">
+                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">O'chirish</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">
+                Hozircha majburiy obunaga hech qanday kanal qo'shilmagan. Yuqoridagi forma orqali birinchi kanalni qo'shing!
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

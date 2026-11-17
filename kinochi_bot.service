@@ -1,0 +1,15 @@
+[Unit]
+Description=Kinochi Bot Pro (Telegram Bot & FastAPI Dashboard)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/kinochi_bot
+ExecStart=/var/www/kinochi_bot/venv/bin/python main.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

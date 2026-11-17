@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kino Buyurtmalari — Gala Kino</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <span>🎬</span> Gala Kino
+    </div>
+    <nav class="nav-links">
+      <a href="/" class="nav-item">📊 Boshqaruv Paneli</a>
+      <a href="/channels" class="nav-item">📢 Majburiy Obuna & Taymer</a>
+      <a href="/movies" class="nav-item">🎬 Kinolar Boshqaruvi</a>
+      <a href="/requests" class="nav-item active">📥 Kino Buyurtmalari</a>
+      <a href="/referrals" class="nav-item">👥 Referallar</a>
+      <a href="/settings" class="nav-item">⚙️ Dinamik Sozlamalar</a>
+    </nav>
+  </aside>
+
+  <main class="main-wrapper">
+    <header class="header">
+      <div>
+        <h1 class="page-title">📥 Foydalanuvchilar Kino Buyurtmalari</h1>
+        <p class="page-subtitle">Qidiruvda topilmagan va foydalanuvchilar so'ragan kinolar ro'yxati</p>
+      </div>
+    </header>
+
+    <div class="card-panel">
+      <h2 class="panel-title">📋 Buyurtmalar Ro'yxati ({{ requests_list | length }} ta)</h2>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Foydalanuvchi</th>
+              <th>So'ralgan Kino</th>
+              <th>Vaqti</th>
+              <th>Holati</th>
+              <th>Amallar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in requests_list %}
+            <tr>
+              <td>#{{ r.id }}</td>
+              <td><strong>{{ r.user_name }}</strong> (<code>{{ r.telegram_id }}</code>)</td>
+              <td><span style="color: var(--primary); font-weight: 600;">{{ r.movie_title }}</span></td>
+              <td>{{ r.created_at }}</td>
+              <td>
+                {% if r.status == 'completed' %}
+                <span class="badge badge-success">Bajarildi</span>
+                {% elif r.status == 'rejected' %}
+                <span class="badge badge-danger">Rad etildi</span>
+                {% else %}
+                <span class="badge badge-timer">Kutilmoqda</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.status == 'pending' %}
+                <form action="/requests/{{ r.id }}/complete" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-success" style="padding: 6px 12px; font-size: 0.8rem;">
+                    ✅ Qo'shildi deb belgilash
+                  </button>
+                </form>
+                {% else %}
+                <span style="color: var(--text-muted); font-size: 0.85rem;">{{ r.admin_note or 'Yakunlangan' }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">
+                Hozircha yangi kino buyurtmalari yo'q.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

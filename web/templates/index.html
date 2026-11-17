@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gala Kino — Admin Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span>🎬</span> Gala Kino
+    </div>
+    <nav class="nav-links">
+      <a href="/" class="nav-item active">📊 Boshqaruv Paneli</a>
+      <a href="/channels" class="nav-item">📢 Majburiy Obuna & Taymer</a>
+      <a href="/movies" class="nav-item">🎬 Kinolar Boshqaruvi</a>
+      <a href="/requests" class="nav-item">📥 Kino Buyurtmalari</a>
+      <a href="/referrals" class="nav-item">👥 Referallar</a>
+      <a href="/settings" class="nav-item">⚙️ Dinamik Sozlamalar</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-wrapper">
+    <header class="header">
+      <div>
+        <h1 class="page-title">Boshqaruv Paneli</h1>
+        <p class="page-subtitle">Botning real vaqtdagi faolligi, statistikasi va holati</p>
+      </div>
+      <div>
+        <a href="/channels" class="btn btn-primary">➕ Kanal / Taymer Qo'shish</a>
+      </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Jami Foydalanuvchilar</span>
+        <div class="stat-value">{{ stats.total_users }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">24 Soatda Faol</span>
+        <div class="stat-value">{{ stats.active_24h }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Jami Kinolar</span>
+        <div class="stat-value">{{ stats.total_movies }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Faol Homiy Kanallar</span>
+        <div class="stat-value">{{ stats.active_channels }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Jami Ko'rishlar</span>
+        <div class="stat-value">{{ stats.total_views }}</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Jami Yuklashlar</span>
+        <div class="stat-value">{{ stats.total_downloads }}</div>
+      </div>
+    </div>
+
+    <!-- Quick Info Panel -->
+    <div class="card-panel">
+      <h2 class="panel-title">⚡️ Bot Holati va Tezkor Sozlamalar</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Barcha o'zgarishlar darhol Telegram botida aks etadi. Dasturni qayta ishga tushirishga hojat yo'q.
+      </p>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; flex: 1; min-width: 200px;">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">MAJBURIY OBUNA REJIMI</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-top: 4px;">
+            {{ settings_dict.get('force_sub_mode', 'strict') | upper }}
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; flex: 1; min-width: 200px;">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">TEXNIK TA'MIRLASH REJIMI</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: {% if settings_dict.get('maintenance_mode') == '1' %}var(--danger){% else %}var(--success){% endif %}; margin-top: 4px;">
+            {% if settings_dict.get('maintenance_mode') == '1' %}YOQILGAN{% else %}O'CHIRILGAN (NORMAL){% endif %}
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; flex: 1; min-width: 200px;">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">KUNLIK BEPUL LIMIT</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: var(--warning); margin-top: 4px;">
+            {{ settings_dict.get('daily_download_limit', '10') }} ta
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

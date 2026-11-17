@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dinamik Sozlamalar — Gala Kino</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <span>🎬</span> Gala Kino
+    </div>
+    <nav class="nav-links">
+      <a href="/" class="nav-item">📊 Boshqaruv Paneli</a>
+      <a href="/channels" class="nav-item">📢 Majburiy Obuna & Taymer</a>
+      <a href="/movies" class="nav-item">🎬 Kinolar Boshqaruvi</a>
+      <a href="/requests" class="nav-item">📥 Kino Buyurtmalari</a>
+      <a href="/referrals" class="nav-item">👥 Referallar</a>
+      <a href="/settings" class="nav-item active">⚙️ Dinamik Sozlamalar</a>
+    </nav>
+  </aside>
+
+  <main class="main-wrapper">
+    <header class="header">
+      <div>
+        <h1 class="page-title">⚙️ Botning Dinamik Sozlamalari</h1>
+        <p class="page-subtitle">Dastur kodini o'zgartirmasdan barcha matnlar, shablonlar va rejimlarni boshqaring</p>
+      </div>
+    </header>
+
+    <div class="card-panel">
+      <form action="/settings/save" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Bot Nomi</label>
+            <input type="text" name="bot_name" class="form-input" value="{{ settings_dict.get('bot_name', '') }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Majburiy Obuna Rejimi</label>
+            <select name="force_sub_mode" class="form-select">
+              <option value="strict" {% if settings_dict.get('force_sub_mode') == 'strict' %}selected{% endif %}>STRICT (Qat'iy majburiy)</option>
+              <option value="timer" {% if settings_dict.get('force_sub_mode') == 'timer' %}selected{% endif %}>TIMER (Taymerli obuna)</option>
+              <option value="disabled" {% if settings_dict.get('force_sub_mode') == 'disabled' %}selected{% endif %}>DISABLED (Vaqtincha o'chirilgan)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Texnik Ishlar Rejimi (Maintenance Mode)</label>
+            <select name="maintenance_mode" class="form-select">
+              <option value="0" {% if settings_dict.get('maintenance_mode') == '0' %}selected{% endif %}>🔴 O'chirilgan (Bot normal ishlaydi)</option>
+              <option value="1" {% if settings_dict.get('maintenance_mode') == '1' %}selected{% endif %}>🟢 YOQILGAN (Faqat adminlar kira oladi)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kunlik Bepul Yuklash Limiti (0 = cheksiz)</label>
+            <input type="number" name="daily_download_limit" class="form-input" value="{{ settings_dict.get('daily_download_limit', '10') }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Anti-Flood Himoyasi (Sekundiga maksimal so'rovlar)</label>
+            <input type="number" name="anti_flood_rate" class="form-input" value="{{ settings_dict.get('anti_flood_rate', '2') }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin Aloqa Kontakti</label>
+            <input type="text" name="admin_contact" class="form-input" value="{{ settings_dict.get('admin_contact', '@Odiljon_n3') }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kanalga Avto-Post Tashlash (@kanal_username)</label>
+            <input type="text" name="auto_post_channel" class="form-input" value="{{ settings_dict.get('auto_post_channel', '') }}" placeholder="@kino_kanal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Avto-Post Holati</label>
+            <select name="auto_post_enabled" class="form-select">
+              <option value="1" {% if settings_dict.get('auto_post_enabled') == '1' %}selected{% endif %}>🟢 Yoqilgan (Yangi kino avtomatik kanalga chiqadi)</option>
+              <option value="0" {% if settings_dict.get('auto_post_enabled') == '0' %}selected{% endif %}>🔴 O'chirilgan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Referal: VIP uchun do'stlar soni</label>
+            <input type="number" name="referral_friends_for_vip" class="form-input" value="{{ settings_dict.get('referral_friends_for_vip', '5') }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Referal: Bepul VIP muddati (kunlarda)</label>
+            <input type="number" name="referral_reward_vip_days" class="form-input" value="{{ settings_dict.get('referral_reward_vip_days', '7') }}">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+          <label class="form-label">Start Salomlashish Matni</label>
+          <textarea name="start_message" class="form-textarea" rows="4">{{ settings_dict.get('start_message', '') }}</textarea>
+          <small style="color: var(--text-muted); margin-top: 4px;">O'zgaruvchilar: {user_name}, {bot_name}, {telegram_id}</small>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+          <label class="form-label">Kino Tagidagi Xabar Shabloni (Caption Template)</label>
+          <textarea name="caption_template" class="form-textarea" rows="7">{{ settings_dict.get('caption_template', '') }}</textarea>
+          <small style="color: var(--text-muted); margin-top: 4px;">O'zgaruvchilar: {title}, {year}, {country}, {genres}, {language}, {rating}, {duration}, {description}, {code}, {bot_username}</small>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+          <label class="form-label">Homiy Reklama Banneri (Kino tagiga avtomatik qo'shiladi)</label>
+          <input type="text" name="ad_banner_text" class="form-input" value="{{ settings_dict.get('ad_banner_text', '') }}" placeholder="🔥 Homiylik reklamasi: ...">
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">💾 Barcha Sozlamalarni Saqlash</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
