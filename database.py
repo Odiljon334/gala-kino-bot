@@ -68,7 +68,9 @@ DEFAULT_SETTINGS = {
         "Murojaat uchun: {admin_contact}"
     ),
     "admin_contact": "@Odiljon_n3",
-    "payment_card_number": "8600 •••• •••• 1234 (Odiljon N.)"
+    "payment_card_number": "8600 •••• •••• 1234 (Odiljon N.)",
+    "keepalive_url": "",
+    "keepalive_interval": "480"
 }
 
 

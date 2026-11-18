@@ -2,9 +2,10 @@
 FastAPI Web Admin Dashboard for Kinochi Bot Pro.
 Allows browser-based dynamic control over channels, timers, movies, and all bot settings.
 """
+from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -35,6 +36,21 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 # ===================== ROUTES =====================
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check():
+    """Ultra-lightweight health-check endpoint for Uptime monitoring & Keep-Alive pings."""
+    return JSONResponse({
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "service": "Gala Kino Bot Pro",
+        "bot": settings.BOT_USERNAME
+    })
+
+@app.api_route("/ping", methods=["GET", "HEAD"])
+async def ping_check():
+    """Simple ping-pong probe for keep-alive and curl checks."""
+    return PlainTextResponse("pong")
 
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def dashboard_home(request: Request):

@@ -132,3 +132,22 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
     - Qidiruv natijalaridan to'g'ridan-to'g'ri botga havola va do'stlarga yuborish tugmasi.
 - [x] 50. Avtomatlashtirilgan testlar to'plamini kengaytirish va verification gate (12 ta test 100% muvaffaqiyatli).
 - [x] 51. Yangilanishlarni GitHub repozitoriyasiga push qilish va botni qayta ishga tushirish.
+
+## 10-Bosqich: ANTI-SLEEP ENGINE & 24/7 ALWAYS-ON RESILIENCE (Uxlab Qolishni Yo'qotish) (YAKUNLANGAN)
+- [x] 52. Web Server Health & Keep-Alive Endpoints (`web/app.py`):
+    - `GET /health` (JSON status, uptime, service info, 200 OK)
+    - `GET /ping` (Plain text 'pong')
+- [x] 53. Anti-Sleep Heartbeat Daemon (`services/keepalive.py`):
+    - Har 8 daqiqada (480s) `RENDER_EXTERNAL_URL`, `KEEPALIVE_URL` yoki bazadagi `keepalive_url` ga HTTP self-ping yuborish.
+    - Render'ning 15 daqiqalik nofaollik taymerini nollab, uxlatib qo'ymaslik (Never Sleep).
+- [x] 54. Resilient Telegram Polling Loop & Auto-Reconnect (`main.py`):
+    - `dp.start_polling` ni auto-recovery `while True` loop va backoff bilan o'rash.
+    - Tarmoq uzilishi yoki Telegram taymoutlarida bot to'xtab qolmasdan darhol qayta ulanishi.
+- [x] 55. Dinamik Sozlamalar va Admin Diagnostikasi (`database.py` & `handlers/admin.py`):
+    - `keepalive_url` va `keepalive_interval` parametrlarini qo'shish.
+    - Telegram Admin va Web paneldan Anti-Sleep URL ni o'rnatish va holatini ko'rish.
+- [x] 56. Lokal Linux Uchun 24/7 Doimiy Systemd Xizmati (`galakinobot.service` & `start_persistent.sh`):
+    - Kompyuter o'chib yonganda yoki bot yiqilganda avtomatik qayta ishga tushiruvchi systemd skripti.
+- [x] 57. Avtomatlashtirilgan Testlar va Verification Gate:
+    - `/health`, `/ping` va keepalive funksiyalari uchun testlar yozish va 100% muvaffaqiyatli o'tkazish (13/13 test OK).
+- [x] 58. GitHub repozitoriyasiga push qilish va Render'ga yangilanishni yetkazish.

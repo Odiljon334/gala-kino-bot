@@ -1,0 +1,16 @@
+[Unit]
+Description=Gala Kino Bot Pro - 24/7 Always-On Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/mr-x/Downloads/kinochi_bot
+ExecStart=/home/mr-x/Downloads/kinochi_bot/venv/bin/python /home/mr-x/Downloads/kinochi_bot/main.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

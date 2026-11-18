@@ -399,6 +399,29 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(movies_retro), 1)
         self.assertEqual(movies_retro[0]["title"], "Matrix")
 
+    async def test_13_anti_sleep_keepalive_endpoints(self):
+        """Test /health, /ping endpoints and keep-alive URL resolution to prevent sleep mode."""
+        from services.keepalive import get_keepalive_url
+        from database import set_setting
+
+        client = TestClient(app)
+        # Test /health
+        res_health = client.get("/health")
+        self.assertEqual(res_health.status_code, 200)
+        data = res_health.json()
+        self.assertEqual(data["status"], "healthy")
+        self.assertIn("Gala Kino", data["service"])
+
+        # Test /ping
+        res_ping = client.get("/ping")
+        self.assertEqual(res_ping.status_code, 200)
+        self.assertEqual(res_ping.text, "pong")
+
+        # Test keepalive URL resolution
+        await set_setting("keepalive_url", "https://gala-kino-bot.onrender.com")
+        resolved = await get_keepalive_url()
+        self.assertEqual(resolved, "https://gala-kino-bot.onrender.com")
+
 
 if __name__ == "__main__":
     unittest.main()
