@@ -380,10 +380,10 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         """Test filtering movies by release era / year range with pagination."""
         from database import add_movie, get_movies_by_year_range
         # Add movies across different years
-        await add_movie({"code": "YR_2024", "title": "Dune 2", "year": 2024, "quality_720_file_id": "DUNE"})
-        await add_movie({"code": "YR_2023", "title": "Oppenheimer", "year": 2023, "quality_720_file_id": "OPP"})
-        await add_movie({"code": "YR_2022", "title": "Avatar 2", "year": 2022, "quality_720_file_id": "AV2"})
-        await add_movie({"code": "YR_1999", "title": "Matrix", "year": 1999, "quality_720_file_id": "MTX"})
+        await add_movie({"code": "YR_2024", "title": "Cosmic Voyager", "year": 2024, "quality_720_file_id": "DUNE"})
+        await add_movie({"code": "YR_2023", "title": "Quantum Odyssey", "year": 2023, "quality_720_file_id": "OPP"})
+        await add_movie({"code": "YR_2022", "title": "Oceanic Depths", "year": 2022, "quality_720_file_id": "AV2"})
+        await add_movie({"code": "YR_1999", "title": "Retro Odyssey", "year": 1999, "quality_720_file_id": "MTX"})
 
         # Query 2024
         movies_2024 = await get_movies_by_year_range(2024, 2024, limit=5, offset=0)
@@ -397,7 +397,7 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         # Query retro (< 2000)
         movies_retro = await get_movies_by_year_range(1900, 1999, limit=5, offset=0)
         self.assertEqual(len(movies_retro), 1)
-        self.assertEqual(movies_retro[0]["title"], "Matrix")
+        self.assertEqual(movies_retro[0]["title"], "Retro Odyssey")
 
     async def test_13_anti_sleep_keepalive_endpoints(self):
         """Test /health, /ping endpoints and keep-alive URL resolution to prevent sleep mode."""
