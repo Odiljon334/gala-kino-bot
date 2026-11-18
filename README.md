@@ -1,4 +1,4 @@
-# 🎬 GALA KINO BOT PRO (Ultimate Dynamic Cinema Bot)
+# 🎬 GALA KINO BOT (Ultimate Dynamic Cinema Bot)
 
 > **Eng yuqori darajada moslashuvchan, parametrlari keng, to'liq dinamik boshqariladigan (kodga tegmasdan ishlaydigan) Kinochi Telegram Bot va Zamonaviy Web Admin Dashboard.**
 
