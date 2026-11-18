@@ -239,6 +239,18 @@ async def init_db():
             UNIQUE(movie_id, telegram_id)
         )
         """)
+
+        # 12. User Favorites (Sevimlilar ro'yxati)
+        await db.execute("""
+        CREATE TABLE IF NOT EXISTS user_favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            movie_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, movie_id)
+        )
+        """)
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_fav_user ON user_favorites(user_id)")
         
         # Insert Default Settings if not exist
         for k, v in DEFAULT_SETTINGS.items():
@@ -554,14 +566,14 @@ async def search_movies(query: str, limit: int = 15) -> List[Dict[str, Any]]:
             return [dict(r) for r in rows]
 
 
-async def get_movies_by_genre(genre: str, limit: int = 20) -> List[Dict[str, Any]]:
-    """Get movies filtered by genre."""
+async def get_movies_by_genre(genre: str, limit: int = 20, offset: int = 0) -> List[Dict[str, Any]]:
+    """Get movies filtered by genre with pagination."""
     search_pattern = f"%{genre.strip()}%"
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
-            "SELECT * FROM movies WHERE genres LIKE ? AND is_active = 1 ORDER BY id DESC LIMIT ?",
-            (search_pattern, limit)
+            "SELECT * FROM movies WHERE genres LIKE ? AND is_active = 1 ORDER BY id DESC LIMIT ? OFFSET ?",
+            (search_pattern, limit, offset)
         ) as cursor:
             rows = await cursor.fetchall()
             return [dict(r) for r in rows]
@@ -915,4 +927,75 @@ async def get_movie_rating_stats(movie_id: int) -> Dict[str, Any]:
                 "avg_stars": round(row[0], 1) if row[0] else 0,
                 "total_ratings": row[1] or 0
             }
+
+
+# ===================== USER FAVORITES (SEVIMLILAR) =====================
+
+async def add_favorite(user_id: int, movie_id: int) -> bool:
+    """Add a movie to user's favorites."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        try:
+            await db.execute(
+                "INSERT OR IGNORE INTO user_favorites (user_id, movie_id) VALUES (?, ?)",
+                (user_id, movie_id)
+            )
+            await db.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error adding favorite: {e}")
+            return False
+
+
+async def remove_favorite(user_id: int, movie_id: int) -> bool:
+    """Remove a movie from user's favorites."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        try:
+            await db.execute(
+                "DELETE FROM user_favorites WHERE user_id = ? AND movie_id = ?",
+                (user_id, movie_id)
+            )
+            await db.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error removing favorite: {e}")
+            return False
+
+
+async def toggle_favorite(user_id: int, movie_id: int) -> bool:
+    """Toggle movie favorite state. Returns True if now favored, False if removed."""
+    favored = await is_favorite(user_id, movie_id)
+    if favored:
+        await remove_favorite(user_id, movie_id)
+        return False
+    else:
+        await add_favorite(user_id, movie_id)
+        return True
+
+
+async def is_favorite(user_id: int, movie_id: int) -> bool:
+    """Check if movie is favored by user."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT id FROM user_favorites WHERE user_id = ? AND movie_id = ?",
+            (user_id, movie_id)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return row is not None
+
+
+async def get_user_favorites(user_id: int, limit: int = 30) -> List[Dict[str, Any]]:
+    """Get all favorite movies of a user with full details."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        query = """
+        SELECT m.* FROM movies m
+        JOIN user_favorites f ON m.id = f.movie_id
+        WHERE f.user_id = ?
+        ORDER BY f.created_at DESC
+        LIMIT ?
+        """
+        async with db.execute(query, (user_id, limit)) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
 

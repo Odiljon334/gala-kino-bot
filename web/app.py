@@ -189,16 +189,11 @@ async def handle_save_settings(request: Request):
     return RedirectResponse(url="/settings", status_code=status.HTTP_303_SEE_OTHER)
 
 
-# ===================== TELEGRAM MINI APP (TMA) =====================
+# ===================== WEB DASHBOARD =====================
 
-@app.api_route("/app", methods=["GET", "HEAD"], response_class=HTMLResponse)
-async def serve_miniapp(request: Request):
-    """Serve the role-aware Telegram Mini App."""
-    return templates.TemplateResponse(
-        request=request,
-        name="miniapp.html",
-        context={"bot_username": settings.BOT_USERNAME}
-    )
+@app.get("/app")
+async def redirect_app():
+    return RedirectResponse(url="/", status_code=302)
 
 
 @app.api_route("/api/me", methods=["GET", "HEAD"])

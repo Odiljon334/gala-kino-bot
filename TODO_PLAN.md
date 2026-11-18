@@ -97,3 +97,21 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
     - 📢 Mini App ichida Adminlar uchun Majburiy Obuna kanallarini boshqarish paneli.
 - [x] 38. Barcha o'zgarishlarni integratsion testdan o'tkazish (Verification Gate).
 - [x] 39. Kodlarni GitHub'ga push qilish va bepul doimiy (permanent) serverga ulash qo'llanmasini taqdim etish.
+
+## 8-Bosqich: Mini Appni Butunlay O'chirish va Telegram Nativ Imkoniyatlarini Maksimal Kuchaytirish
+- [x] 40. Mini App va Tunnel tizimini butunlay o'chirish:
+    - Telegram Menu Button'ni standart holatga qaytarish (`MenuButtonDefault()`).
+    - Asosiy klaviaturadan `📱 Gala Kino (Mini App)` va `/app` buyrug'ini olib tashlash.
+    - `main.py` dan `tunnel_watchdog` ni to'xtatish va chiqarib tashlash.
+- [x] 41. Baza va Sevimlilar (Watchlist) Nativ Tizimi (`database.py`):
+    - `user_favorites` jadvali va funksiyalari (`add_favorite`, `remove_favorite`, `get_user_favorites`, `is_favorite`).
+    - Asosiy menyuga `❤️ Sevimlilarim` tugmasini kiritish va boshqarish interfeysi.
+- [x] 42. Telegram Kino Kartasi va Multi-Quality Nativ Dvigateli:
+    - Har bir kino kartasiga `[❤️ Sevimlilarga qo'shish / o'chirish]` inline tugmasi.
+    - Ko'p sifatli kinolar uchun nativ sifat tugmalari (`[🎬 1080p]`, `[🎬 720p]`, `[🎬 480p]`).
+    - Do'stlarga 1-bosishda ulashish tugmasi (`switch_inline_query`).
+- [x] 43. Janrlar va Top-10 Kinolar uchun Interaktiv Sahifalash (Pagination):
+    - 12 ta janr bo'yicha kinolarni sahifama-sahifa (`◀️`, `▶️`) ko'rish.
+    - Nativ Telegram inline menyularini yanada tezkor va jozibador qilish.
+- [x] 44. Avtomatlashtirilgan testlar to'plamini yangilash va verification gate (100% muvaffaqiyatli).
+- [x] 45. GitHub repozitoriyasiga to'liq yuklash va yangilangan botni ishga tushirish.

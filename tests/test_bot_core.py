@@ -303,6 +303,35 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         stats = await get_movie_rating_stats(movie_id)
         self.assertEqual(stats["total_ratings"], 2)
 
+    async def test_10_user_favorites(self):
+        """Test adding, checking, listing and removing user favorites."""
+        from database import add_movie, add_favorite, is_favorite, get_user_favorites, remove_favorite
+        movie_id = await add_movie({
+            "code": "FAV_TEST",
+            "title": "Sevimli Kino",
+            "quality_720_file_id": "FILE_FAV"
+        })
+        user_id = 998877
+        
+        # Add favorite
+        added = await add_favorite(user_id, movie_id)
+        self.assertTrue(added)
+        
+        # Check favorite
+        fav = await is_favorite(user_id, movie_id)
+        self.assertTrue(fav)
+        
+        # List favorites
+        favs = await get_user_favorites(user_id)
+        self.assertEqual(len(favs), 1)
+        self.assertEqual(favs[0]["id"], movie_id)
+        
+        # Remove favorite
+        removed = await remove_favorite(user_id, movie_id)
+        self.assertTrue(removed)
+        fav_after = await is_favorite(user_id, movie_id)
+        self.assertFalse(fav_after)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,6 @@ from handlers.referral import referral_router
 from handlers.requests import requests_router
 from handlers.payment import payment_router
 from services.backup import auto_backup_scheduler
-from services.tunnel_watchdog import start_tunnel_watchdog
 from web.app import app as web_app
 
 # Configure Logging
@@ -47,21 +46,13 @@ async def run_bot(bot: Bot, dp: Dispatcher):
     except Exception as e:
         logger.warning(f"Could not drop webhook: {e}")
 
-    # Configure Telegram Menu Button for Mini App
-    from database import get_web_app_url
-    app_url = await get_web_app_url()
-    if app_url.startswith("https://"):
-        from aiogram.types import MenuButtonWebApp, WebAppInfo
-        try:
-            await bot.set_chat_menu_button(
-                menu_button=MenuButtonWebApp(
-                    text="🎬 Kinolar (Mini App)",
-                    web_app=WebAppInfo(url=app_url)
-                )
-            )
-            logger.info(f"Telegram Menu Button configured with: {app_url}")
-        except Exception as e:
-            logger.warning(f"Could not set menu button: {e}")
+    # Configure Telegram Menu Button (Native Default)
+    from aiogram.types import MenuButtonDefault
+    try:
+        await bot.set_chat_menu_button(menu_button=MenuButtonDefault())
+        logger.info("Telegram Menu Button set to default.")
+    except Exception as e:
+        logger.warning(f"Could not set menu button: {e}")
         
     await dp.start_polling(bot)
 
@@ -102,12 +93,11 @@ async def main():
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # 4. Run Bot, Web Dashboard, Auto-Backup Scheduler, and Tunnel Watchdog concurrently
+    # 4. Run Bot, Web Dashboard, and Auto-Backup Scheduler concurrently
     await asyncio.gather(
         run_bot(bot, dp),
         run_web(),
-        auto_backup_scheduler(bot),
-        start_tunnel_watchdog(bot)
+        auto_backup_scheduler(bot)
     )
 
 
