@@ -86,6 +86,16 @@ Bot kodini ochmasdan, admin paneldan turib kino tagiga chiqadigan matn shablonin
 - **Anti-flood**: Botni serverni toliqtiruvchi spam so'rovlardan avtomatik himoyalash.
 - **Zaxira nusxasi (Backup)**: Adminga to'g'ridan-to'g'ri Telegram orqali `kinochi.db` bazasini yuborish.
 
+### 12. 🎬 To'liq Seriallar Dvigateli va Yillar Bo'yicha Filtr
+- **Fasllar va Qismlar Navigatori**: Seriallar uchun fasl tanlash, qismlar katakchasi va `[⏮ Oldingi qism]`, `[📑 Qismlar]`, `[Keyingi qism ⏭]` interaktiv pleyeri.
+- **Yillar va Davrlar Bo'yicha Saralash**: `2024-yil`, `2023-yil`, `2022-yil`, `2020-2021`, `2010-2019`, `Retro (< 2000)` davrlari bo'yicha sahifalash.
+- **Treylerlar**: Rasmiy YouTube/Telegram treyler havolalarini kinoga biriktirish.
+
+### 13. 💓 Anti-Sleep 24/7 Always-On Dvigateli (Never Sleep)
+- **Render.com / Bepul Bulut Himoyasi**: Bepul bulut serverlarining 15 daqiqalik uyqu rejimiga (Sleep mode) tushib qolishini yo'qotuvchi ichki Self-Ping Heartbeat xizmati (`services/keepalive.py`).
+- **Resilient Polling**: Tarmoq uzilganda yoki Telegram taymout berganida 2 soniyada avtomatik qayta ulanuvchi xavfsiz aylana.
+- **Healthcheck Probes**: `/health` (JSON) va `/ping` (Text) orqali UptimeRobot yoki istalgan pinger bilan 100% 0-sleep kafolati.
+
 ---
 
 ## 🚀 Ishga Tushirish (O'rnatish)
@@ -103,15 +113,26 @@ nano .env
 Misol:
 ```env
 BOT_TOKEN=123456789:AAEkxYz...
-BOT_USERNAME=mening_kino_botim
-ADMIN_IDS=123456789
+BOT_USERNAME=galakinobot
+ADMIN_IDS=8430493961
 ```
 
 ### 3. Bir tugma bilan ishga tushirish:
 ```bash
 ./start.sh
 ```
-Ushbu skript virtual muhitni tekshiradi, kutubxonalarni ishga tushiradi va bot bilan birga Web Dashboardni ochadi!
+Yoki Linux kompyuterida 24/7 orqa fonda to'xtovsiz ishlatish uchun:
+```bash
+./start_persistent.sh
+```
+
+### 4. Linux Systemd 24/7 Avto-Start (Kompyuter yonganda o'zi ishga tushishi uchun):
+```bash
+mkdir -p ~/.config/systemd/user
+cp galakinobot.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now galakinobot.service
+```
 
 - **Telegram Bot**: Polling rejimida darhol javob berishni boshlaydi.
 - **Web Dashboard**: Brauzerda oching: `http://localhost:8080` (Login: `admin`, Parol: `kinochi2026`).
@@ -120,7 +141,7 @@ Ushbu skript virtual muhitni tekshiradi, kutubxonalarni ishga tushiradi va bot b
 
 ## 🧪 Avtomatlashtirilgan Sinov (Verification)
 
-Tizimning barcha 9 ta moduli (baza, taymerlar, inline qidiruv, referallar, buyurtmalar, reytinglar va veb yo'llar) 100% test qilingan. Istalgan vaqtda testlarni qayta yurgizishingiz mumkin:
+Tizimning barcha 13 ta moduli (baza, kanallar, taymerlar, kinolar, seriallar, yillar filtri, inline qidiruv, referallar, buyurtmalar, reytinglar, sevimlilar, anti-sleep keepalive va web dashboard) 100% test qilingan:
 ```bash
-./venv/bin/python3 -m unittest tests/test_bot_core.py
+PYTHONPATH=. ./venv/bin/python tests/test_bot_core.py
 ```
