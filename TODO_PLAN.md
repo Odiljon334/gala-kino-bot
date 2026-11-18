@@ -115,3 +115,20 @@ Joylashuv: `/home/mr-x/Downloads/kinochi_bot`
     - Nativ Telegram inline menyularini yanada tezkor va jozibador qilish.
 - [x] 44. Avtomatlashtirilgan testlar to'plamini yangilash va verification gate (100% muvaffaqiyatli).
 - [x] 45. GitHub repozitoriyasiga to'liq yuklash va yangilangan botni ishga tushirish.
+
+## 9-Bosqich: GALA KINO ULTIMATE POWER PACK (Maksimal Kuchaytirish) (YAKUNLANGAN)
+- [x] 46. Seriallar (Fasllar va Qismlar) Dvigatelini To'liq Ulanishi:
+    - Baza: `get_episodes_by_season`, `get_movie_seasons`, `get_adjacent_episodes`, `get_episode_by_id`.
+    - Telegram: Serial ochilganda Fasllar tanlash, Qismlar tugmalari (`[1-qism]`, `[2-qism]...`), va qism ko'rilganda `[⏮ Oldingi]`, `[Keyingi ⏭]` navigatsiyasi.
+    - Admin: Telegram paneldan turib serial qismlarini (`add_ep_start`) birma-bir video va nomi bilan qo'shish.
+- [x] 47. Yillar Bo'yicha Qidiruv va Filtr Dvigateli (`database.py` & `handlers/user.py`):
+    - `get_movies_by_year_range(start_year, end_year, limit, offset)`.
+    - Janrlar menyusida `📅 Yillar bo'yicha saralash` (`2024`, `2023`, `2022`, `2020-2021`, `2010-2019`, `Retro`) va interaktiv sahifalash (`◀️`, `▶️`).
+- [x] 48. Treyler Ko'rish Tizimi:
+    - Kinoda `trailer_url` bo'lganda `[🎬 Rasmiy Treyler]` inline tugmasi va preview.
+    - Admin paneldan istalgan kinoga treyler YouTube/Telegram havolasini biriktirish (`set_trailer_start`).
+- [x] 49. Telegram Inline Rejimini Pro Darajaga Ko'tarish (`handlers/inline.py`):
+    - Bo'sh qidiruvda (`@galakinobot `) avtomatik ravishda eng ommabop Top-10 kinolar kartalarini chiqarish.
+    - Qidiruv natijalaridan to'g'ridan-to'g'ri botga havola va do'stlarga yuborish tugmasi.
+- [x] 50. Avtomatlashtirilgan testlar to'plamini kengaytirish va verification gate (12 ta test 100% muvaffaqiyatli).
+- [x] 51. Yangilanishlarni GitHub repozitoriyasiga push qilish va botni qayta ishga tushirish.

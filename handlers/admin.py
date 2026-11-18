@@ -24,8 +24,10 @@ from database import (
     update_channel,
     add_movie,
     get_movie_by_code,
+    get_movie_by_id,
     update_movie,
     delete_movie,
+    add_episode,
     get_system_stats,
     create_promocode,
     set_user_vip,
@@ -75,6 +77,17 @@ class GrantVipFSM(StatesGroup):
 
 class FindMovieEditFSM(StatesGroup):
     code = State()
+
+class AddEpisodeFSM(StatesGroup):
+    movie_id = State()
+    season = State()
+    episode = State()
+    file = State()
+    title = State()
+
+class SetTrailerFSM(StatesGroup):
+    movie_id = State()
+    trailer_url = State()
 
 
 # ===================== HELPER CHECKER =====================
@@ -527,6 +540,10 @@ async def fsm_find_movie_code(message: Message, state: FSMContext):
         f"📝 Tavsif: {movie['description'][:100]}..."
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📁 Qism Qo'shish (Serial)", callback_data=f"add_ep_start:{movie['id']}"),
+            InlineKeyboardButton(text="🔗 Treyler Linki", callback_data=f"set_trailer_start:{movie['id']}")
+        ],
         [InlineKeyboardButton(text="🗑 Kinoni O'chirish", callback_data=f"del_movie:{movie['id']}")],
         [InlineKeyboardButton(text="◀️ Kinolar menyusi", callback_data="admin_movies")]
     ])
@@ -539,6 +556,119 @@ async def cb_del_movie(callback: CallbackQuery):
     await delete_movie(m_id)
     await callback.answer("Kino butunlay o'chirildi!", show_alert=True)
     await cb_admin_movies(callback)
+
+
+# --- Add Episode to Series ---
+@admin_router.callback_query(F.data.startswith("add_ep_start:"))
+async def cb_add_ep_start(callback: CallbackQuery, state: FSMContext):
+    movie_id = int(callback.data.split(":")[1])
+    await state.update_data(movie_id=movie_id)
+    await state.set_state(AddEpisodeFSM.season)
+    await callback.message.edit_text(
+        "📁 <b>SERIAL QISMINI QO'SHISH</b>\n\n"
+        "1-qadam: Fasl raqamini yozing (masalan: <code>1</code>):"
+    )
+
+
+@admin_router.message(AddEpisodeFSM.season)
+async def fsm_ep_season(message: Message, state: FSMContext):
+    try:
+        season = int(message.text.strip())
+    except ValueError:
+        await message.answer("⚠️ Iltimos, faqat raqam kiriting (masalan: 1):")
+        return
+    await state.update_data(season=season)
+    await state.set_state(AddEpisodeFSM.episode)
+    await message.answer("2-qadam: Qism raqamini yozing (masalan: <code>1</code> yoki <code>2</code>):")
+
+
+@admin_router.message(AddEpisodeFSM.episode)
+async def fsm_ep_number(message: Message, state: FSMContext):
+    try:
+        episode = int(message.text.strip())
+    except ValueError:
+        await message.answer("⚠️ Iltimos, faqat raqam kiriting (masalan: 1):")
+        return
+    await state.update_data(episode=episode)
+    await state.set_state(AddEpisodeFSM.file)
+    await message.answer("3-qadam: Ushbu qism videosini yuboring (yoki Telegram video file_id sini yozing):")
+
+
+@admin_router.message(AddEpisodeFSM.file)
+async def fsm_ep_file(message: Message, state: FSMContext):
+    file_id = ""
+    if message.video:
+        file_id = message.video.file_id
+    elif message.document:
+        file_id = message.document.file_id
+    elif message.text:
+        file_id = message.text.strip()
+
+    if not file_id:
+        await message.answer("⚠️ Iltimos, video fayl yuboring yoki file_id sini yozing:")
+        return
+
+    await state.update_data(file_id=file_id)
+    await state.set_state(AddEpisodeFSM.title)
+    await message.answer("4-qadam: Qism nomini yozing (ixtiyoriy, nom yo'q bo'lsa <code>-</code> deb yozing):")
+
+
+@admin_router.message(AddEpisodeFSM.title)
+async def fsm_ep_title(message: Message, state: FSMContext):
+    ep_title = message.text.strip()
+    if ep_title == "-":
+        ep_title = ""
+    data = await state.get_data()
+    await state.clear()
+
+    movie_id = data["movie_id"]
+    season = data["season"]
+    episode = data["episode"]
+    file_id = data["file_id"]
+
+    await add_episode(
+        movie_id=movie_id,
+        season_number=season,
+        episode_number=episode,
+        file_id=file_id,
+        episode_title=ep_title,
+        quality="720p"
+    )
+    # Mark movie as series
+    await update_movie(movie_id, {"is_series": 1})
+
+    movie = await get_movie_by_id(movie_id)
+    title = movie["title"] if movie else f"#{movie_id}"
+    await message.answer(
+        f"✅ <b>{title}</b> serialiga <b>{season}-fasl, {episode}-qism</b> muvaffaqiyatli qo'shildi!",
+        reply_markup=get_admin_main_kb()
+    )
+
+
+# --- Set Trailer URL ---
+@admin_router.callback_query(F.data.startswith("set_trailer_start:"))
+async def cb_set_trailer_start(callback: CallbackQuery, state: FSMContext):
+    movie_id = int(callback.data.split(":")[1])
+    await state.update_data(movie_id=movie_id)
+    await state.set_state(SetTrailerFSM.trailer_url)
+    await callback.message.edit_text(
+        "🔗 <b>TREYLER LINKINI O'RNATISH</b>\n\n"
+        "Rasmiy treyler uchun YouTube yoki Telegram video havolasini yuboring (masalan: <i>https://youtu.be/...</i>):"
+    )
+
+
+@admin_router.message(SetTrailerFSM.trailer_url)
+async def fsm_trailer_url(message: Message, state: FSMContext):
+    url = message.text.strip()
+    data = await state.get_data()
+    await state.clear()
+
+    movie_id = data["movie_id"]
+    await update_movie(movie_id, {"trailer_url": url})
+    await message.answer(
+        "✅ Treyler havolasi muvaffaqiyatli saqlandi!",
+        reply_markup=get_admin_main_kb()
+    )
 
 
 # ===================== DYNAMIC SETTINGS =====================

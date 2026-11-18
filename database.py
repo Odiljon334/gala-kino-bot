@@ -664,6 +664,8 @@ async def add_episode(movie_id: int, episode_number: int, file_id: str, episode_
         await db.commit()
         return cursor.lastrowid
 
+add_movie_episode = add_episode
+
 
 async def get_episodes_by_movie(movie_id: int) -> List[Dict[str, Any]]:
     """Get all episodes of a series ordered by season and episode."""
@@ -672,6 +674,78 @@ async def get_episodes_by_movie(movie_id: int) -> List[Dict[str, Any]]:
         async with db.execute(
             "SELECT * FROM movie_episodes WHERE movie_id = ? ORDER BY season_number ASC, episode_number ASC",
             (movie_id,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(r) for r in rows]
+
+
+async def get_movie_seasons(movie_id: int) -> List[int]:
+    """Get unique sorted season numbers for a series."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT DISTINCT season_number FROM movie_episodes WHERE movie_id = ? ORDER BY season_number ASC",
+            (movie_id,)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [r[0] for r in rows] if rows else [1]
+
+
+async def get_episodes_by_season(movie_id: int, season_number: int = 1) -> List[Dict[str, Any]]:
+    """Get episodes of a specific season."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM movie_episodes WHERE movie_id = ? AND season_number = ? ORDER BY episode_number ASC",
+            (movie_id, season_number)
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(r) for r in rows]
+
+
+async def get_episode_by_id(episode_id: int) -> Optional[Dict[str, Any]]:
+    """Get a single episode by its ID."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM movie_episodes WHERE id = ?", (episode_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+
+async def get_adjacent_episodes(movie_id: int, season_number: int, episode_number: int) -> tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """Get previous and next episode in the same season."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """SELECT * FROM movie_episodes 
+               WHERE movie_id = ? AND season_number = ? AND episode_number < ? 
+               ORDER BY episode_number DESC LIMIT 1""",
+            (movie_id, season_number, episode_number)
+        ) as cursor:
+            prev_row = await cursor.fetchone()
+
+        async with db.execute(
+            """SELECT * FROM movie_episodes 
+               WHERE movie_id = ? AND season_number = ? AND episode_number > ? 
+               ORDER BY episode_number ASC LIMIT 1""",
+            (movie_id, season_number, episode_number)
+        ) as cursor:
+            next_row = await cursor.fetchone()
+
+        return dict(prev_row) if prev_row else None, dict(next_row) if next_row else None
+
+
+async def get_movies_by_year_range(start_year: int, end_year: int, limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
+    """Get movies released within a year range (inclusive) with pagination."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """SELECT * FROM movies 
+               WHERE year >= ? AND year <= ? AND is_active = 1 
+               ORDER BY year DESC, rating DESC, id DESC 
+               LIMIT ? OFFSET ?""",
+            (start_year, end_year, limit, offset)
         ) as cursor:
             rows = await cursor.fetchall()
             return [dict(r) for r in rows]

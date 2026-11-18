@@ -332,6 +332,73 @@ class TestKinochiBotCore(unittest.IsolatedAsyncioTestCase):
         fav_after = await is_favorite(user_id, movie_id)
         self.assertFalse(fav_after)
 
+    async def test_11_series_and_episodes(self):
+        """Test series creation, adding episodes, seasons navigation and adjacent episodes."""
+        from database import (
+            add_movie, add_episode, get_movie_seasons, get_episodes_by_season,
+            get_episode_by_id, get_adjacent_episodes
+        )
+        series_id = await add_movie({
+            "code": "SERIES_TEST",
+            "title": "Kurtlar Vadisi",
+            "is_series": 1,
+            "quality_720_file_id": "SERIES_MAIN_FILE"
+        })
+        self.assertGreater(series_id, 0)
+
+        # Add Season 1 episodes
+        ep1_id = await add_episode(series_id, episode_number=1, file_id="EP_1_FILE", episode_title="Boshlanish", season_number=1)
+        ep2_id = await add_episode(series_id, episode_number=2, file_id="EP_2_FILE", episode_title="Tuzoq", season_number=1)
+        ep3_id = await add_episode(series_id, episode_number=3, file_id="EP_3_FILE", episode_title="Hujum", season_number=1)
+
+        # Add Season 2 episode
+        ep4_id = await add_episode(series_id, episode_number=1, file_id="EP_S2_1_FILE", episode_title="Yangi Davr", season_number=2)
+
+        # Check unique seasons
+        seasons = await get_movie_seasons(series_id)
+        self.assertEqual(seasons, [1, 2])
+
+        # Check episodes of season 1
+        s1_episodes = await get_episodes_by_season(series_id, season_number=1)
+        self.assertEqual(len(s1_episodes), 3)
+        self.assertEqual(s1_episodes[0]["id"], ep1_id)
+        self.assertEqual(s1_episodes[1]["episode_number"], 2)
+
+        # Check single episode retrieval
+        ep_data = await get_episode_by_id(ep2_id)
+        self.assertIsNotNone(ep_data)
+        self.assertEqual(ep_data["episode_title"], "Tuzoq")
+
+        # Check adjacent navigation
+        prev_ep, next_ep = await get_adjacent_episodes(series_id, season_number=1, episode_number=2)
+        self.assertIsNotNone(prev_ep)
+        self.assertEqual(prev_ep["episode_number"], 1)
+        self.assertIsNotNone(next_ep)
+        self.assertEqual(next_ep["episode_number"], 3)
+
+    async def test_12_movies_by_year_range(self):
+        """Test filtering movies by release era / year range with pagination."""
+        from database import add_movie, get_movies_by_year_range
+        # Add movies across different years
+        await add_movie({"code": "YR_2024", "title": "Dune 2", "year": 2024, "quality_720_file_id": "DUNE"})
+        await add_movie({"code": "YR_2023", "title": "Oppenheimer", "year": 2023, "quality_720_file_id": "OPP"})
+        await add_movie({"code": "YR_2022", "title": "Avatar 2", "year": 2022, "quality_720_file_id": "AV2"})
+        await add_movie({"code": "YR_1999", "title": "Matrix", "year": 1999, "quality_720_file_id": "MTX"})
+
+        # Query 2024
+        movies_2024 = await get_movies_by_year_range(2024, 2024, limit=5, offset=0)
+        self.assertEqual(len(movies_2024), 1)
+        self.assertEqual(movies_2024[0]["code"], "YR_2024")
+
+        # Query 2022-2023
+        movies_recent = await get_movies_by_year_range(2022, 2023, limit=5, offset=0)
+        self.assertEqual(len(movies_recent), 2)
+
+        # Query retro (< 2000)
+        movies_retro = await get_movies_by_year_range(1900, 1999, limit=5, offset=0)
+        self.assertEqual(len(movies_retro), 1)
+        self.assertEqual(movies_retro[0]["title"], "Matrix")
+
 
 if __name__ == "__main__":
     unittest.main()

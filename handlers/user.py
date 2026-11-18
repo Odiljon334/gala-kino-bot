@@ -35,7 +35,12 @@ from database import (
     remove_favorite,
     toggle_favorite,
     is_favorite,
-    get_user_favorites
+    get_user_favorites,
+    get_movie_seasons,
+    get_episodes_by_season,
+    get_episode_by_id,
+    get_adjacent_episodes,
+    get_movies_by_year_range
 )
 from services.subscription import check_all_subscriptions, build_subscription_keyboard
 from services.template import format_caption, format_start_message
@@ -97,6 +102,31 @@ def get_genres_keyboard() -> InlineKeyboardMarkup:
             row = []
     if row:
         buttons.append(row)
+    buttons.append([InlineKeyboardButton(text="📅 Yillar bo'yicha saralash", callback_data="year_menu")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_years_keyboard() -> InlineKeyboardMarkup:
+    """Pre-configured year / era filter buttons."""
+    year_ranges = [
+        ("🔥 2024-yil", 2024, 2024),
+        ("✨ 2023-yil", 2023, 2023),
+        ("🎬 2022-yil", 2022, 2022),
+        ("🎞 2020-2021", 2020, 2021),
+        ("📼 2010-2019", 2010, 2019),
+        ("⏳ 2000-2009", 2000, 2009),
+        ("🏛 Retro (< 2000)", 1900, 1999),
+    ]
+    buttons = []
+    row = []
+    for label, s_yr, e_yr in year_ranges:
+        row.append(InlineKeyboardButton(text=label, callback_data=f"year_range:{s_yr}:{e_yr}:0"))
+        if len(row) == 2:
+            buttons.append(row)
+            row = []
+    if row:
+        buttons.append(row)
+    buttons.append([InlineKeyboardButton(text="🎭 Barcha janrlar", callback_data="back_to_genres")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
@@ -143,6 +173,8 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot):
             from handlers.payment import send_vip_payment_screen
             await send_vip_payment_screen(message)
             return
+        elif param == "inline_search":
+            target_code = ""
         else:
             target_code = param.replace("movie_", "")
 
@@ -271,15 +303,6 @@ async def deliver_movie_by_code(message: Message, bot: Bot, code: str, user: dic
     # Build movie caption
     caption = await format_caption(movie)
 
-    # Multi-Quality buttons
-    quality_row = []
-    if movie.get("quality_1080_file_id"):
-        quality_row.append(InlineKeyboardButton(text="🎬 1080p FHD", callback_data=f"dl_quality:{movie['id']}:1080"))
-    if movie.get("quality_720_file_id"):
-        quality_row.append(InlineKeyboardButton(text="🎬 720p HD", callback_data=f"dl_quality:{movie['id']}:720"))
-    if movie.get("quality_480_file_id"):
-        quality_row.append(InlineKeyboardButton(text="🎬 480p SD", callback_data=f"dl_quality:{movie['id']}:480"))
-
     # Favorite status
     fav_status = await is_favorite(message.chat.id, movie["id"])
     fav_text = "❤️ Sevimlilardan o'chirish" if fav_status else "🤍 Sevimlilarga saqlash"
@@ -294,11 +317,50 @@ async def deliver_movie_by_code(message: Message, bot: Bot, code: str, user: dic
         ]
     ]
 
-    if quality_row:
-        kb_rows.append(quality_row)
+    # Series & Episodes Support
+    is_series = bool(movie.get("is_series"))
+    if is_series:
+        seasons = await get_movie_seasons(movie["id"])
+        if len(seasons) > 1:
+            season_row = [
+                InlineKeyboardButton(text=f"📁 {s}-Fasl", callback_data=f"series_season:{movie['id']}:{s}")
+                for s in seasons
+            ]
+            for i in range(0, len(season_row), 3):
+                kb_rows.append(season_row[i:i+3])
+        # First season episodes
+        first_season = seasons[0] if seasons else 1
+        episodes = await get_episodes_by_season(movie["id"], first_season)
+        if episodes:
+            ep_btns = [
+                InlineKeyboardButton(text=f"▶️ {ep['episode_number']}-qism", callback_data=f"series_ep:{ep['id']}")
+                for ep in episodes[:8]
+            ]
+            for i in range(0, len(ep_btns), 4):
+                kb_rows.append(ep_btns[i:i+4])
+            if len(episodes) > 8:
+                kb_rows.append([InlineKeyboardButton(text=f"📑 Barcha qismlar ({len(episodes)} ta)", callback_data=f"series_season:{movie['id']}:{first_season}")])
+    else:
+        # Multi-Quality buttons for standalone movies
+        quality_row = []
+        if movie.get("quality_1080_file_id"):
+            quality_row.append(InlineKeyboardButton(text="🎬 1080p FHD", callback_data=f"dl_quality:{movie['id']}:1080"))
+        if movie.get("quality_720_file_id"):
+            quality_row.append(InlineKeyboardButton(text="🎬 720p HD", callback_data=f"dl_quality:{movie['id']}:720"))
+        if movie.get("quality_480_file_id"):
+            quality_row.append(InlineKeyboardButton(text="🎬 480p SD", callback_data=f"dl_quality:{movie['id']}:480"))
+        if quality_row:
+            kb_rows.append(quality_row)
 
+    # Action row (Trailer + Favorite)
+    action_row = []
+    if movie.get("trailer_url"):
+        action_row.append(InlineKeyboardButton(text="🎬 Rasmiy Treyler", url=movie["trailer_url"]))
+    action_row.append(InlineKeyboardButton(text=fav_text, callback_data=f"fav_toggle:{movie['id']}"))
+    kb_rows.append(action_row)
+
+    # Share row
     kb_rows.append([
-        InlineKeyboardButton(text=fav_text, callback_data=f"fav_toggle:{movie['id']}"),
         InlineKeyboardButton(text="↗️ Do'stlarga ulashish", switch_inline_query=movie['title'])
     ])
 
@@ -603,6 +665,218 @@ async def cb_view_movie(callback: CallbackQuery, bot: Bot):
         return
 
     await deliver_movie_by_code(callback.message, bot, movie["code"], user)
+    await callback.answer()
+
+
+# ===================== SERIES & EPISODES NAVIGATION =====================
+
+@user_router.callback_query(F.data.startswith("series_season:"))
+async def cb_series_season(callback: CallbackQuery):
+    parts = callback.data.split(":")
+    movie_id = int(parts[1])
+    season_num = int(parts[2])
+
+    movie = await get_movie_by_id(movie_id)
+    if not movie:
+        await callback.answer("Serial topilmadi!", show_alert=True)
+        return
+
+    episodes = await get_episodes_by_season(movie_id, season_num)
+    seasons = await get_movie_seasons(movie_id)
+
+    buttons = []
+    # Episode grid (4 buttons per row)
+    ep_row = []
+    for ep in episodes:
+        ep_row.append(InlineKeyboardButton(text=f"▶️ {ep['episode_number']}-qism", callback_data=f"series_ep:{ep['id']}"))
+        if len(ep_row) == 4:
+            buttons.append(ep_row)
+            ep_row = []
+    if ep_row:
+        buttons.append(ep_row)
+
+    # Season switcher if multiple seasons
+    if len(seasons) > 1:
+        s_row = []
+        for s in seasons:
+            prefix = "🔘" if s == season_num else "📁"
+            s_row.append(InlineKeyboardButton(text=f"{prefix} {s}-Fasl", callback_data=f"series_season:{movie_id}:{s}"))
+        buttons.append(s_row)
+
+    buttons.append([InlineKeyboardButton(text="◀️ Serial kartasiga qaytish", callback_data=f"view_movie:{movie_id}")])
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    text = (
+        f"🎬 <b>{movie['title']}</b>\n"
+        f"📁 <b>{season_num}-fasl qismlari ({len(episodes)} ta):</b>\n\n"
+        "Tomosha qilmoqchi bo'lgan qismni tanlang:"
+    )
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        await callback.message.answer(text, reply_markup=kb)
+    await callback.answer()
+
+
+@user_router.callback_query(F.data.startswith("series_ep:"))
+async def cb_series_episode(callback: CallbackQuery, bot: Bot):
+    ep_id = int(callback.data.split(":")[1])
+    ep = await get_episode_by_id(ep_id)
+    if not ep:
+        await callback.answer("Qism topilmadi!", show_alert=True)
+        return
+
+    movie = await get_movie_by_id(ep["movie_id"])
+    if not movie:
+        await callback.answer("Serial topilmadi!", show_alert=True)
+        return
+
+    user = await get_user(callback.from_user.id)
+    # Check mandatory subscription
+    is_subscribed, unsubscribed, rem = await check_all_subscriptions(bot, callback.from_user.id, user)
+    if not is_subscribed:
+        sub_text = await get_setting("force_sub_text")
+        await callback.message.answer(sub_text, reply_markup=build_subscription_keyboard(unsubscribed, movie["code"], rem))
+        return
+
+    # Check VIP only movie
+    if movie.get("is_vip_only") and not await check_user_vip_status(user):
+        vip_text = "🔒 <b>Ushbu serial faqat VIP foydalanuvchilar uchun!</b>"
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💎 VIP Status Olish", callback_data="buy_vip")]
+        ])
+        await callback.message.answer(vip_text, reply_markup=kb)
+        return
+
+    # Check Daily Download Limit
+    daily_limit = int(await get_setting("daily_download_limit", "10"))
+    if daily_limit > 0 and not await check_user_vip_status(user):
+        current_downloads = user.get("daily_downloads", 0)
+        if current_downloads >= daily_limit:
+            limit_msg = await get_setting("limit_exceeded_text")
+            limit_msg = limit_msg.replace("{limit}", str(daily_limit))
+            await callback.message.answer(limit_msg)
+            return
+
+    # Adjacent episodes navigation
+    prev_ep, next_ep = await get_adjacent_episodes(ep["movie_id"], ep["season_number"], ep["episode_number"])
+
+    nav_row = []
+    if prev_ep:
+        nav_row.append(InlineKeyboardButton(text=f"⏮ {prev_ep['episode_number']}-qism", callback_data=f"series_ep:{prev_ep['id']}"))
+    nav_row.append(InlineKeyboardButton(text="📑 Qismlar", callback_data=f"series_season:{movie['id']}:{ep['season_number']}"))
+    if next_ep:
+        nav_row.append(InlineKeyboardButton(text=f"{next_ep['episode_number']}-qism ⏭", callback_data=f"series_ep:{next_ep['id']}"))
+
+    fav_status = await is_favorite(callback.message.chat.id, movie["id"])
+    fav_text = "❤️ Sevimlilardan o'chirish" if fav_status else "🤍 Sevimlilarga saqlash"
+
+    kb_rows = [
+        nav_row,
+        [
+            InlineKeyboardButton(text="⭐ 1", callback_data=f"rate:{movie['id']}:1"),
+            InlineKeyboardButton(text="⭐ 2", callback_data=f"rate:{movie['id']}:2"),
+            InlineKeyboardButton(text="⭐ 3", callback_data=f"rate:{movie['id']}:3"),
+            InlineKeyboardButton(text="⭐ 4", callback_data=f"rate:{movie['id']}:4"),
+            InlineKeyboardButton(text="⭐ 5", callback_data=f"rate:{movie['id']}:5")
+        ],
+        [
+            InlineKeyboardButton(text=fav_text, callback_data=f"fav_toggle:{movie['id']}"),
+            InlineKeyboardButton(text="↗️ Ulashish", switch_inline_query=movie['title'])
+        ],
+        [InlineKeyboardButton(text="◀️ Serial kartasiga qaytish", callback_data=f"view_movie:{movie['id']}")]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=kb_rows)
+
+    ep_title = ep.get("episode_title")
+    title_suffix = f": <i>{ep_title}</i>" if ep_title else ""
+    caption = (
+        f"🎬 <b>{movie['title']}</b>\n\n"
+        f"📁 <b>{ep['season_number']}-fasl, {ep['episode_number']}-qism</b>{title_suffix}\n"
+        f"🎞 <b>Sifat:</b> {ep.get('quality', '720p')}\n"
+        f"🤖 <b>Botimiz:</b> @{settings.BOT_USERNAME.replace('@', '')}"
+    )
+
+    await callback.answer(f"▶️ {ep['episode_number']}-qism yuklanmoqda...")
+    try:
+        await bot.send_video(
+            chat_id=callback.message.chat.id,
+            video=ep["file_id"],
+            caption=caption,
+            reply_markup=kb
+        )
+    except Exception as e:
+        logger.error(f"Failed to send episode video: {e}")
+        await callback.message.answer(caption, reply_markup=kb)
+
+    # Increment statistics
+    await increment_movie_stats(movie["id"], views=1, downloads=1)
+    await increment_user_downloads(user["telegram_id"])
+
+
+# ===================== YEAR / ERA FILTER NAVIGATION =====================
+
+@user_router.callback_query(F.data == "year_menu")
+async def cb_year_menu(callback: CallbackQuery):
+    """Display year / era selection menu."""
+    text = (
+        "📅 <b>KINO VA MATERIALLARNI YILLAR BO'YICHA SARALASH</b>\n\n"
+        "Qaysi davr yoki yildagi kinolarni tomosha qilmoqchisiz? Quyidagi toifalardan birini tanlang:"
+    )
+    try:
+        await callback.message.edit_text(text, reply_markup=get_years_keyboard())
+    except Exception:
+        await callback.message.answer(text, reply_markup=get_years_keyboard())
+    await callback.answer()
+
+
+@user_router.callback_query(F.data.startswith("year_range:"))
+async def cb_year_range(callback: CallbackQuery):
+    parts = callback.data.split(":")
+    start_year = int(parts[1])
+    end_year = int(parts[2])
+    page = int(parts[3])
+    await render_year_movies_page(callback, start_year, end_year, page)
+
+
+async def render_year_movies_page(callback: CallbackQuery, start_year: int, end_year: int, page: int = 0):
+    limit = 6
+    offset = page * limit
+    movies = await get_movies_by_year_range(start_year, end_year, limit=limit + 1, offset=offset)
+
+    era_label = f"{start_year}-yil" if start_year == end_year else f"{start_year} - {end_year}"
+
+    if not movies and page == 0:
+        await callback.answer(f"'{era_label}' davrida hali kinolar mavjud emas.", show_alert=True)
+        return
+
+    has_next = len(movies) > limit
+    page_movies = movies[:limit]
+
+    buttons = []
+    for m in page_movies:
+        btn_label = f"🎬 {m['title']} ({m['year']}) ⭐ {m['rating']}"
+        buttons.append([InlineKeyboardButton(text=btn_label, callback_data=f"view_movie:{m['id']}")])
+
+    nav_row = []
+    if page > 0:
+        nav_row.append(InlineKeyboardButton(text="◀️ Oldingi", callback_data=f"year_range:{start_year}:{end_year}:{page - 1}"))
+    if has_next:
+        nav_row.append(InlineKeyboardButton(text="Keyingi ▶️", callback_data=f"year_range:{start_year}:{end_year}:{page + 1}"))
+    if nav_row:
+        buttons.append(nav_row)
+
+    buttons.append([
+        InlineKeyboardButton(text="📅 Barcha yillar", callback_data="year_menu"),
+        InlineKeyboardButton(text="🎭 Janrlar katalogi", callback_data="back_to_genres")
+    ])
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    text = f"📅 <b>{era_label} kinolari ({page + 1}-sahifa):</b>\n\nTomosha qilish uchun kinoni tanlang:"
+    try:
+        await callback.message.edit_text(text, reply_markup=kb)
+    except Exception:
+        await callback.message.answer(text, reply_markup=kb)
     await callback.answer()
 
 
